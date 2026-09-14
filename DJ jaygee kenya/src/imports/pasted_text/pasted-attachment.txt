@@ -1,0 +1,820 @@
+Yes. The website-building prompt should tell the AI **exactly what each photograph should look like**, so it generates/selects the right visuals instead of defaulting to nightclub/neon imagery.
+
+Here is the **complete upgraded prompt** with detailed photo descriptions included:
+
+```text
+Build a complete, modern, premium and professional website for a Kenyan DJ and event entertainment business called "DJ Jaygee Kenya".
+
+The business provides professional DJ, sound and music services for weddings, corporate events, conferences, ceremonies, private functions and special occasions.
+
+IMPORTANT BRAND POSITIONING:
+DJ Jaygee Kenya is a PROFESSIONAL EVENT SERVICES BRAND.
+
+The website must NOT look like a nightclub, rave, party promotion page or entertainment club website.
+
+The visual identity should communicate:
+- Professionalism
+- Reliability
+- Elegance
+- Quality sound
+- Experience
+- Good customer service
+- Professional event management
+- Trust
+- Memorable experiences
+
+Use the uploaded DJ Jaygee Kenya logo as the official logo.
+
+==================================================
+BRAND COLORS
+==================================================
+
+Primary Black: #111111
+Primary Red: #D71920
+White: #FFFFFF
+Light Gray: #F5F5F5
+Dark Gray: #242424
+
+Use red as an accent color rather than covering the entire website in red.
+
+==================================================
+OVERALL DESIGN
+==================================================
+
+Create a premium website similar to a professional event-management and entertainment company.
+
+Use:
+- Clean layouts
+- Large professional photography
+- Strong typography
+- Generous whitespace
+- Elegant black and white sections
+- Red accent elements
+- Subtle animations
+- Professional icons
+- High-quality photography
+- Clean cards
+- Rounded buttons
+- Smooth scrolling
+
+Avoid:
+- Neon nightclub lighting
+- Purple nightclub backgrounds
+- Laser beams
+- Excessive smoke
+- Rave crowds
+- Flashy party graphics
+- Excessive gradients
+- Cheap-looking effects
+- Cartoon graphics
+
+Photography should look like real professional event photography.
+
+==================================================
+PHOTO STYLE
+==================================================
+
+ALL WEBSITE PHOTOGRAPHS MUST LOOK LIKE THEY WERE TAKEN BY A PROFESSIONAL EVENT PHOTOGRAPHER.
+
+Use realistic African people and realistic Kenyan/African event environments.
+
+Lighting should generally be:
+- Natural
+- Warm
+- Neutral
+- Soft professional event lighting
+- Clean studio lighting
+
+Use subtle red accents where appropriate to match the DJ Jaygee brand.
+
+Do NOT use neon blue/purple nightclub lighting unless it is extremely subtle.
+
+==================================================
+PHOTO 1 — HERO IMAGE
+==================================================
+
+Use a wide 16:9 professional photograph of DJ Jaygee performing at a high-quality formal event.
+
+The DJ should be positioned toward the RIGHT side of the image.
+
+He should be a young Black African male with a professional appearance.
+
+He should be wearing:
+- Clean professional DJ clothing
+- DJ Jaygee branded polo or smart black/white clothing
+- Professional headphones
+
+Show him operating professional DJ equipment including:
+- DJ controller
+- Mixer
+- Laptop
+- Professional speakers
+- Microphones
+
+The venue should look like:
+- Modern hotel ballroom
+OR
+- Elegant wedding reception
+OR
+- Corporate event venue
+OR
+- Professional conference hall
+
+The venue should have:
+- Clean stage setup
+- Elegant decorations
+- Professional event lighting
+- Neatly arranged chairs/tables
+- Professional sound equipment
+
+The DJ should look focused, confident and experienced.
+
+The image should communicate:
+"Professional DJ services for serious events."
+
+Leave DARK CLEAN NEGATIVE SPACE on the LEFT side for the website headline and buttons.
+
+Suggested hero text over the image:
+
+"DJ JAYGEE"
+
+"Professional Sound. Perfect Moments."
+
+"Professional DJ & Event Entertainment Services"
+
+Buttons:
+"BOOK DJ JAYGEE"
+"VIEW SERVICES"
+
+The hero image must NOT contain text because the website will render text using HTML.
+
+==================================================
+PHOTO 2 — PROFESSIONAL DJ PORTRAIT
+==================================================
+
+Use the uploaded portrait of DJ Jaygee as the reference.
+
+Preserve his actual:
+- Face
+- Facial features
+- Skin tone
+- Hairstyle
+- Natural appearance
+- Body proportions
+
+Do not significantly alter his identity.
+
+Transform the photograph into a professional business portrait.
+
+Place him in a clean professional environment such as:
+- Modern event venue
+- Professional DJ studio
+- Elegant hotel ballroom
+- Clean studio
+
+He should be wearing professional DJ/business-casual clothing.
+
+Use:
+- Soft studio lighting
+- Natural skin tones
+- Clean background
+- Subtle depth of field
+
+The photograph should feel appropriate for:
+- Company website
+- Business profile
+- Event brochure
+- Corporate proposal
+- Professional social media
+
+Avoid:
+- Party atmosphere
+- Neon lights
+- Nightclub background
+- Excessive effects
+
+This image will be used in the:
+
+"ABOUT DJ JAYGEE"
+
+section.
+
+==================================================
+PHOTO 3 — DJ PERFORMING
+==================================================
+
+Use the uploaded photograph showing DJ Jaygee operating DJ equipment as the reference.
+
+Preserve his real appearance and identity.
+
+Improve the photograph professionally.
+
+Show DJ Jaygee actively operating professional DJ equipment at an event.
+
+The event should appear organized and professional.
+
+Include:
+- DJ controller
+- Laptop
+- Mixer
+- Professional speakers
+- Microphones
+- Clean equipment setup
+
+The environment should look like a professional:
+- Wedding
+- Corporate function
+- Conference
+- Formal event
+- Private celebration
+
+Use realistic warm/neutral event lighting.
+
+The DJ should be the main subject.
+
+This photograph will be used in the:
+
+"PROFESSIONAL DJ SERVICES"
+
+or
+
+"EXPERIENCE & EXPERTISE"
+
+section.
+
+==================================================
+PHOTO 4 — WEDDING EVENT
+==================================================
+
+Generate a professional wedding photograph featuring DJ Jaygee providing music services at an elegant wedding reception.
+
+The venue should be sophisticated and beautifully decorated.
+
+Include:
+- Elegant tables
+- Wedding decorations
+- Flowers
+- Soft warm lighting
+- Clean dance/reception area
+- Professional DJ setup
+
+DJ Jaygee should be professionally dressed and operating the equipment.
+
+The photograph should communicate:
+
+"Professional music and sound for your special day."
+
+It should feel elegant and emotional rather than like a nightclub.
+
+Use warm white, cream, subtle gold and natural colors.
+
+No neon.
+No lasers.
+No rave atmosphere.
+
+Use this image in the:
+
+"WEDDINGS"
+
+service card or section.
+
+==================================================
+PHOTO 5 — CORPORATE EVENT
+==================================================
+
+Generate a professional corporate event photograph.
+
+Show DJ Jaygee providing professional DJ and sound services at a modern corporate function.
+
+The venue should look like:
+- Hotel conference hall
+- Corporate event center
+- Business function
+- Company celebration
+
+Include:
+- Professional stage
+- Conference seating
+- Presentation screen
+- Microphones
+- Speakers
+- DJ controller
+- Laptop
+
+People should be dressed professionally.
+
+The image should communicate:
+- Reliability
+- Professionalism
+- Organization
+- Technical expertise
+
+Use clean white and warm neutral lighting.
+
+No nightclub lighting.
+No neon.
+No party graphics.
+
+Use this image in the:
+
+"CORPORATE EVENTS"
+
+section.
+
+==================================================
+PHOTO 6 — CONFERENCE / SEMINAR
+==================================================
+
+Generate a professional image of DJ Jaygee providing sound and music services at a conference or seminar.
+
+Show:
+- Professional stage
+- Podium
+- Wireless microphones
+- Speakers
+- DJ console
+- Laptop
+- Organized audience seating
+
+DJ Jaygee should be professionally dressed and monitoring the sound system.
+
+The environment should look like a serious professional conference.
+
+Lighting should be clean and bright.
+
+The photograph should communicate:
+"Reliable professional sound and event support."
+
+Use this in the:
+
+"CONFERENCES & SEMINARS"
+
+service section.
+
+==================================================
+PHOTO 7 — FORMAL CEREMONY
+==================================================
+
+Generate a professional photograph of DJ Jaygee providing music and sound services at a formal ceremony.
+
+The environment should be elegant and organized.
+
+Show:
+- Formal seating
+- Stage
+- Professional speakers
+- Microphones
+- DJ equipment
+- Event decorations
+
+DJ Jaygee should be dressed professionally.
+
+Use clean neutral lighting.
+
+The image should communicate professionalism, respect and reliability.
+
+No nightclub atmosphere.
+
+Use this in:
+
+"FORMAL CEREMONIES"
+
+==================================================
+PHOTO 8 — PRIVATE EVENTS
+==================================================
+
+Generate a sophisticated photograph of DJ Jaygee providing professional DJ services at a private celebration.
+
+The event should be elegant and tasteful rather than a nightclub.
+
+Show:
+- Professional DJ setup
+- Well-dressed guests
+- Elegant venue
+- Tables
+- Event decorations
+- Professional lighting
+
+The photograph should communicate a memorable but professionally managed event.
+
+Use this for:
+
+"PRIVATE EVENTS"
+
+==================================================
+PHOTO 9 — DJ EQUIPMENT
+==================================================
+
+Create a professional commercial photograph focused on DJ Jaygee's equipment.
+
+Show:
+- Professional DJ controller
+- Mixer
+- Laptop
+- Headphones
+- Wireless microphones
+- Professional speakers
+- Cables neatly arranged
+
+The equipment should look clean, modern and professionally maintained.
+
+Use close-up photography with sharp details.
+
+Use neutral professional lighting.
+
+Do not use neon colors.
+
+The image should communicate:
+
+"Professional equipment. Professional sound."
+
+Use this in a:
+
+"PROFESSIONAL EQUIPMENT"
+
+section.
+
+==================================================
+PHOTO 10 — EVENT SETUP
+==================================================
+
+Create a wide photograph showing DJ Jaygee's complete professional event setup before guests arrive.
+
+Show:
+- DJ console
+- Laptop
+- Speakers
+- Microphones
+- Lighting equipment
+- Clean cable management
+- Elegant event venue
+
+The venue should be beautifully prepared and organized.
+
+This image should demonstrate attention to detail and professionalism.
+
+Use it for:
+
+"OUR SETUP"
+
+or
+
+"PROFESSIONAL EVENT PRODUCTION"
+
+==================================================
+PHOTO 11 — GALLERY
+==================================================
+
+Create a professional gallery containing a mixture of:
+
+1. DJ Jaygee performing
+2. DJ Jaygee portrait
+3. Wedding setup
+4. Corporate event
+5. Conference
+6. Formal ceremony
+7. DJ equipment
+8. Event setup
+9. Professional sound system
+10. Guests enjoying an organized event
+
+All photographs must maintain the same professional visual style.
+
+Do not mix nightclub photography with corporate photography.
+
+The gallery should feel like a portfolio of a serious professional DJ company.
+
+==================================================
+HOME PAGE
+==================================================
+
+Create these sections:
+
+1. HERO
+2. ABOUT DJ JAYGEE
+3. SERVICES
+4. WHY CHOOSE DJ JAYGEE
+5. EVENTS
+6. PROFESSIONAL EQUIPMENT
+7. GALLERY
+8. TESTIMONIALS
+9. BOOKING CTA
+10. CONTACT
+11. FOOTER
+
+==================================================
+HERO CONTENT
+==================================================
+
+DJ JAYGEE
+
+Professional Sound. Perfect Moments.
+
+"Professional DJ and event entertainment services for weddings, corporate events, conferences, ceremonies, private functions and special occasions across Kenya."
+
+Buttons:
+
+BOOK DJ JAYGEE
+
+VIEW SERVICES
+
+Small trust indicators:
+
+PROFESSIONAL
+RELIABLE
+EXPERIENCED
+
+==================================================
+ABOUT
+==================================================
+
+Heading:
+
+"Meet DJ Jaygee"
+
+Text:
+
+"DJ Jaygee Kenya provides professional DJ and event entertainment services designed to make every occasion memorable. From elegant weddings and corporate functions to conferences, ceremonies and private celebrations, DJ Jaygee delivers carefully selected music, professional equipment and dependable event service."
+
+Include the professional DJ portrait.
+
+==================================================
+SERVICES
+==================================================
+
+Create six professional service cards:
+
+WEDDINGS
+Elegant music and professional DJ services for wedding ceremonies and receptions.
+
+CORPORATE EVENTS
+Professional music and sound services for company functions and corporate events.
+
+CONFERENCES & SEMINARS
+Reliable sound, microphones and music support for professional gatherings.
+
+PRIVATE EVENTS
+Professional DJ entertainment for birthdays, anniversaries and private celebrations.
+
+FORMAL CEREMONIES
+Professional music and sound support for official and institutional functions.
+
+EVENT SOUND & DJ SETUP
+Professional DJ equipment, sound setup and music management.
+
+Use the corresponding photographs described above for each service.
+
+==================================================
+WHY CHOOSE DJ JAYGEE
+==================================================
+
+Create four features:
+
+PROFESSIONAL SERVICE
+Reliable and well-organized event entertainment.
+
+QUALITY SOUND
+Professional equipment and carefully managed audio.
+
+MUSIC FOR EVERY OCCASION
+Music selection tailored to the type and audience of each event.
+
+RELIABLE & EXPERIENCED
+Professional preparation and dependable event service.
+
+==================================================
+EVENTS
+==================================================
+
+Create a visual section showing:
+
+Weddings
+Corporate Events
+Conferences
+Private Functions
+Formal Ceremonies
+Special Events
+
+Use the professional event photographs described above.
+
+==================================================
+GALLERY
+==================================================
+
+Create a responsive professional masonry/grid gallery.
+
+Images should open in a lightbox when clicked.
+
+Include smooth but subtle hover animations.
+
+==================================================
+TESTIMONIALS
+==================================================
+
+Heading:
+
+"What Our Clients Say"
+
+Use professional testimonial cards.
+
+Example:
+
+"DJ Jaygee provided excellent service at our wedding. The music selection was perfect and everything was handled professionally."
+
+— Wedding Client
+
+Another:
+
+"Professional, punctual and well organized. DJ Jaygee made our corporate event run smoothly."
+
+— Corporate Client
+
+Do not make unrealistic claims.
+
+==================================================
+BOOKING CTA
+==================================================
+
+Heading:
+
+"Make Your Event Memorable"
+
+Text:
+
+"Looking for a professional DJ for your next event? Get in touch with DJ Jaygee Kenya and let's create the right atmosphere for your occasion."
+
+Button:
+
+BOOK DJ JAYGEE
+
+Phone:
+
+0703372346
+
+Make the phone number clickable:
+
+tel:+254703372346
+
+==================================================
+CONTACT
+==================================================
+
+Create a professional booking form.
+
+Fields:
+
+Full Name
+Phone Number
+Email Address
+Event Type
+Event Date
+Event Location
+Number of Guests
+Additional Message
+
+Button:
+
+REQUEST A BOOKING
+
+Add contact information:
+
+DJ Jaygee Kenya
+Professional DJ & Event Entertainment Services
+Phone: 0703372346
+
+Add social media icons for:
+
+Instagram
+Facebook
+TikTok
+YouTube
+
+==================================================
+FOOTER
+==================================================
+
+Black footer.
+
+Include:
+
+DJ Jaygee Kenya logo
+
+"Professional DJ & Event Entertainment Services"
+
+Home
+About
+Services
+Events
+Gallery
+Contact
+
+Phone:
+0703372346
+
+© 2026 DJ Jaygee Kenya. All Rights Reserved.
+
+==================================================
+MOBILE RESPONSIVENESS
+==================================================
+
+The website must work beautifully on:
+
+Desktop
+Laptop
+Tablet
+Mobile
+
+On mobile:
+
+- Use hamburger navigation
+- Stack service cards
+- Make buttons full-width where appropriate
+- Optimize all images
+- Keep text readable
+- Maintain professional spacing
+- Ensure phone number is easy to tap
+
+==================================================
+ANIMATIONS
+==================================================
+
+Use subtle professional animations only.
+
+Examples:
+
+- Fade-in sections
+- Gentle image zoom on hover
+- Smooth button hover
+- Slide-up cards
+- Smooth scrolling
+
+Do NOT use excessive animations.
+
+==================================================
+SEO
+==================================================
+
+Page title:
+
+"DJ Jaygee Kenya | Professional DJ & Event Entertainment Services"
+
+Meta description:
+
+"DJ Jaygee Kenya provides professional DJ, sound and event entertainment services for weddings, corporate events, conferences, ceremonies and special occasions across Kenya."
+
+Use proper:
+
+H1
+H2
+H3
+
+Headings.
+
+Add Open Graph metadata.
+
+==================================================
+FINAL VISUAL GOAL
+==================================================
+
+The finished website should look like a serious, established professional DJ and event-services company.
+
+A visitor should immediately understand:
+
+DJ Jaygee is professional.
+DJ Jaygee is reliable.
+DJ Jaygee has professional equipment.
+DJ Jaygee serves weddings, companies, conferences and formal events.
+DJ Jaygee can be trusted with important events.
+
+The website should feel:
+
+PREMIUM
+PROFESSIONAL
+CLEAN
+ELEGANT
+TRUSTWORTHY
+MODERN
+AFRICAN
+EVENT-FOCUSED
+
+It must NOT feel like a nightclub advertisement.
+```
+
+### Photo order for the website
+
+I would specifically have the website builder use your uploaded images like this:
+
+| Website section    | Photo                                                         |
+| ------------------ | ------------------------------------------------------------- |
+| **Hero**           | DJ Jaygee operating the DJ equipment, professionally enhanced |
+| **About**          | Your close-up portrait                                        |
+| **Weddings**       | Elegant wedding DJ setup                                      |
+| **Corporate**      | DJ at a conference/corporate function                         |
+| **Conferences**    | DJ + microphones + professional stage                         |
+| **Ceremonies**     | Formal event setup                                            |
+| **Private Events** | Elegant private function                                      |
+| **Equipment**      | Close-up of controller, mixer, laptop & headphones            |
+| **Gallery**        | Mix of all professional event photographs                     |
+| **CTA**            | Wide, elegant DJ/event venue photograph                       |
+
+**The key instruction is:** *make DJ Jaygee look like a professional event-services provider who happens to be a DJ, rather than a nightclub DJ who sometimes does events.* That distinction will make the website much more suitable for getting **wedding, corporate, conference and official-event bookings**.
