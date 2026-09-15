@@ -192,7 +192,20 @@ export default function App() {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setFormSubmitted(true)
+    const whatsappMessage = [
+      "Hello DJ Jaygee Kenya, I would like to request a booking.",
+      "",
+      `Full Name: ${formData.name || "Not provided"}`,
+      `Phone Number: ${formData.phone || "Not provided"}`,
+      `Email Address: ${formData.email || "Not provided"}`,
+      `Event Type: ${formData.eventType || "Not provided"}`,
+      `Event Date: ${formData.date || "Not provided"}`,
+      `Event Location: ${formData.location || "Not provided"}`,
+      `Number of Guests: ${formData.guests || "Not provided"}`,
+      `Additional Message: ${formData.message || "Not provided"}`,
+    ].join("\n")
+
+    window.location.assign(`https://wa.me/254703372346?text=${encodeURIComponent(whatsappMessage)}`)
   }
 
   return (
