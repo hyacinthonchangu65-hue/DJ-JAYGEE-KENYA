@@ -111,6 +111,31 @@ const DownloadIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" />
   </svg>
 )
+const ChevronDownIcon = () => (
+  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+  </svg>
+)
+const HomeIcon = () => (
+  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5L12 3l9 7.5M5 9v11h14V9M9 20v-6h6v6" />
+  </svg>
+)
+const UsersIcon = () => (
+  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2m8-10a4 4 0 100-8 4 4 0 000 8zm6 2a4 4 0 014 4v2m-4-10a4 4 0 100-8" />
+  </svg>
+)
+const ChatIcon = () => (
+  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
+  </svg>
+)
+const CalendarIcon = () => (
+  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <rect x="3" y="4" width="18" height="17" rx="2" /><path strokeLinecap="round" d="M16 2v4M8 2v4M3 10h18" />
+  </svg>
+)
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -150,11 +175,148 @@ const eventTypes = [
   { label: "Special Events", img: U.equipment },
 ]
 
+type AppTab = "home" | "fans" | "conversations" | "booking"
+
+function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isInstalled: boolean }) {
+  const [activeTab, setActiveTab] = useState<AppTab>("home")
+  const [signedIn, setSignedIn] = useState(false)
+  const [showSignIn, setShowSignIn] = useState(false)
+  const [fanName, setFanName] = useState("")
+  const [draftMessage, setDraftMessage] = useState("")
+  const [messages, setMessages] = useState([
+    { from: "DJ Jaygee", text: "Welcome to the DJ Jaygee fan space. What are you planning?", mine: false },
+  ])
+
+  const handleSignIn = (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!fanName.trim()) return
+    setSignedIn(true)
+    setShowSignIn(false)
+  }
+
+  const sendMessage = (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!draftMessage.trim()) return
+    setMessages(current => [...current, { from: "You", text: draftMessage.trim(), mine: true }])
+    setDraftMessage("")
+  }
+
+  const navItems: { id: AppTab; label: string; icon: React.ReactNode }[] = [
+    { id: "home", label: "Home", icon: <HomeIcon /> },
+    { id: "fans", label: "Fans", icon: <UsersIcon /> },
+    { id: "conversations", label: "Chat", icon: <ChatIcon /> },
+    { id: "booking", label: "Book", icon: <CalendarIcon /> },
+  ]
+
+  return (
+    <div className="min-h-screen bg-[#F5F5F5] text-[#111111] pb-24">
+      <header className="sticky top-0 z-40 bg-[#111111] text-white shadow-lg">
+        <div className="flex items-center justify-between px-4 py-3">
+          <button onClick={() => setActiveTab("home")} className="flex items-center gap-2.5 text-left">
+            <img src={logoImg} alt="DJ Jaygee Kenya" className="h-10 w-10 rounded-lg object-cover" />
+            <span className="leading-tight">
+              <strong className="block text-sm tracking-wide">DJ JAYGEE</strong>
+              <span className="text-[10px] uppercase tracking-[0.2em] text-[#C96B6B]">Kenya</span>
+            </span>
+          </button>
+          <div className="flex items-center gap-2">
+            {!isInstalled && (
+              <button onClick={onInstall} className="rounded-full border border-white/25 px-3 py-2 text-[10px] font-semibold tracking-wide">
+                INSTALL
+              </button>
+            )}
+            <button
+              onClick={() => signedIn ? setSignedIn(false) : setShowSignIn(true)}
+              className="rounded-full bg-[#A41E14] px-3 py-2 text-[10px] font-semibold tracking-wide"
+            >
+              {signedIn ? "SIGN OUT" : "SIGN IN"}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-xl px-4 py-5">
+        {activeTab === "home" && (
+          <div className="space-y-5">
+            <section className="relative min-h-[30rem] overflow-hidden rounded-[2rem] bg-[#111111] text-white shadow-xl">
+              <img src={djPerformingImg} alt="DJ Jaygee performing" className="absolute inset-0 h-full w-full object-cover opacity-45" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/95" />
+              <div className="relative flex min-h-[30rem] flex-col justify-end p-6">
+                <span className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#C96B6B]">The official fan app</span>
+                <h1 className="text-4xl font-bold leading-tight">Professional Sound.<br /><span className="text-[#C96B6B]">Perfect Moments.</span></h1>
+                <p className="mt-4 text-sm leading-relaxed text-white/70">Follow the music, meet other fans, and get your next event moving.</p>
+                <button onClick={() => setActiveTab("fans")} className="mt-6 flex w-full items-center justify-between rounded-2xl bg-[#A41E14] px-5 py-4 text-left text-sm font-semibold">
+                  Explore the fan page
+                  <ChevronDownIcon />
+                </button>
+              </div>
+            </section>
+            <section className="rounded-2xl bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div><p className="text-xs font-semibold uppercase tracking-widest text-[#A63A3A]">Next move</p><h2 className="mt-1 text-xl font-bold">Plan your perfect event</h2></div>
+                <CalendarIcon />
+              </div>
+              <p className="mt-2 text-sm leading-relaxed text-gray-500">Book DJ Jaygee for weddings, corporate events, ceremonies, and private celebrations across Kenya.</p>
+              <button onClick={() => setActiveTab("booking")} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#111111] px-4 py-3 text-sm font-semibold">Start a booking <ChevronDownIcon /></button>
+            </section>
+          </div>
+        )}
+
+        {activeTab === "fans" && (
+          <div className="space-y-5">
+            <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Community</p><h1 className="mt-1 text-3xl font-bold">Fan page</h1><p className="mt-2 text-sm text-gray-500">Stay close to the sound and share the moments.</p></div>
+            <article className="overflow-hidden rounded-2xl bg-white shadow-sm">
+              <img src={djPortraitImg} alt="DJ Jaygee" className="h-56 w-full object-cover object-top" />
+              <div className="p-5"><div className="flex items-center justify-between"><h2 className="font-bold">DJ Jaygee Kenya</h2><span className="text-xs text-[#A41E14]">Official</span></div><p className="mt-2 text-sm leading-relaxed text-gray-500">Professional DJ, event entertainer, and the sound behind unforgettable Kenyan celebrations.</p></div>
+            </article>
+            <div className="grid grid-cols-2 gap-3">
+              {eventTypes.slice(0, 4).map(event => <div key={event.label} className="relative h-32 overflow-hidden rounded-2xl"><img src={event.img} alt={event.label} className="h-full w-full object-cover" /><div className="absolute inset-0 bg-black/45" /><span className="absolute bottom-3 left-3 right-3 text-sm font-semibold text-white">{event.label}</span></div>)}
+            </div>
+            <button onClick={() => setActiveTab("conversations")} className="flex w-full items-center justify-between rounded-2xl bg-[#111111] px-5 py-4 text-sm font-semibold text-white">Join the conversation <ChevronDownIcon /></button>
+          </div>
+        )}
+
+        {activeTab === "conversations" && (
+          <div className="flex min-h-[calc(100vh-9rem)] flex-col">
+            <div className="mb-5"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Fan community</p><h1 className="mt-1 text-3xl font-bold">Conversations</h1><p className="mt-2 text-sm text-gray-500">Talk music, events, and bookings with DJ Jaygee.</p></div>
+            <div className="flex-1 space-y-3 rounded-2xl bg-white p-4 shadow-sm">
+              {messages.map((message, index) => <div key={index} className={`flex ${message.mine ? "justify-end" : "justify-start"}`}><div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${message.mine ? "rounded-br-md bg-[#A41E14] text-white" : "rounded-bl-md bg-[#F5F5F5] text-[#111111]"}`}><span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide opacity-60">{message.from}</span>{message.text}</div></div>)}
+            </div>
+            <form onSubmit={sendMessage} className="mt-4 flex gap-2"><input value={draftMessage} onChange={event => setDraftMessage(event.target.value)} placeholder={signedIn ? "Write a message..." : "Sign in to chat"} disabled={!signedIn} className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /><button type="submit" disabled={!signedIn} className="rounded-xl bg-[#111111] px-4 text-sm font-semibold text-white disabled:opacity-40">Send</button></form>
+            {!signedIn && <button onClick={() => setShowSignIn(true)} className="mt-3 text-center text-xs font-semibold text-[#A41E14]">Sign in to join the conversation</button>}
+          </div>
+        )}
+
+        {activeTab === "booking" && (
+          <div className="space-y-5">
+            <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Bookings</p><h1 className="mt-1 text-3xl font-bold">Make it memorable</h1><p className="mt-2 text-sm leading-relaxed text-gray-500">Tell DJ Jaygee about your event and continue the conversation on WhatsApp.</p></div>
+            <div className="rounded-2xl bg-[#111111] p-6 text-white shadow-xl"><h2 className="text-2xl font-bold">DJ Jaygee Kenya</h2><p className="mt-2 text-sm leading-relaxed text-white/65">Professional sound for weddings, corporate events, conferences, ceremonies, and private celebrations.</p><a href="https://wa.me/254703372346?text=Hello%20DJ%20Jaygee%20Kenya%2C%20I%20would%20like%20to%20make%20a%20booking." className="mt-6 flex w-full items-center justify-center rounded-xl bg-[#A41E14] px-4 py-4 text-sm font-semibold">Continue on WhatsApp</a><a href="tel:+254703372346" className="mt-3 flex w-full items-center justify-center rounded-xl border border-white/20 px-4 py-4 text-sm font-semibold">Call 0703 372 346</a></div>
+            <button onClick={() => setActiveTab("home")} className="mx-auto flex items-center gap-2 text-sm font-semibold text-[#A41E14]">Back to home <ChevronDownIcon /></button>
+          </div>
+        )}
+      </main>
+
+      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-black/10 bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] pt-2 backdrop-blur">
+        <div className="mx-auto flex max-w-xl justify-around">
+          {navItems.map(item => <button key={item.id} onClick={() => setActiveTab(item.id)} className={`flex min-w-[4.5rem] flex-col items-center gap-1 px-3 py-2 text-[10px] font-semibold ${activeTab === item.id ? "text-[#A41E14]" : "text-gray-400"}`}>{item.icon}<span>{item.label}</span></button>)}
+        </div>
+      </nav>
+
+      {showSignIn && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center" onClick={() => setShowSignIn(false)}>
+          <form onSubmit={handleSignIn} onClick={event => event.stopPropagation()} className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"><div className="mb-5 flex items-center justify-between"><div><p className="text-xs font-semibold uppercase tracking-widest text-[#A41E14]">Fan access</p><h2 className="mt-1 text-2xl font-bold">Sign in</h2></div><button type="button" onClick={() => setShowSignIn(false)} className="rounded-full bg-[#F5F5F5] p-2"><XIcon /></button></div><label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Your name</label><input autoFocus value={fanName} onChange={event => setFanName(event.target.value)} placeholder="Enter your name" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /><button type="submit" className="mt-4 w-full rounded-xl bg-[#A41E14] px-4 py-3 text-sm font-semibold text-white">Continue</button></form>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [standaloneMode, setStandaloneMode] = useState(false)
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isInstalled, setIsInstalled] = useState(false)
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null)
@@ -169,6 +331,8 @@ export default function App() {
 
   useEffect(() => {
     setIsInstalled(window.matchMedia("(display-mode: standalone)").matches)
+    const updateStandaloneMode = () => setStandaloneMode(window.matchMedia("(display-mode: standalone)").matches || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone))
+    updateStandaloneMode()
 
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault()
@@ -181,9 +345,11 @@ export default function App() {
 
     window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt)
     window.addEventListener("appinstalled", onAppInstalled)
+    window.addEventListener("resize", updateStandaloneMode)
     return () => {
       window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt)
       window.removeEventListener("appinstalled", onAppInstalled)
+      window.removeEventListener("resize", updateStandaloneMode)
     }
   }, [])
 
@@ -251,6 +417,10 @@ export default function App() {
     ].join("\n")
 
     window.location.assign(`https://wa.me/254703372346?text=${encodeURIComponent(whatsappMessage)}`)
+  }
+
+  if (standaloneMode) {
+    return <StandaloneApp onInstall={handleInstall} isInstalled={isInstalled} />
   }
 
   return (
