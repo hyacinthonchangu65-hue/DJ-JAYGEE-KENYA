@@ -143,6 +143,14 @@ const CalendarIcon = () => (
 const MusicIcon = () => <span className="text-lg leading-none">♫</span>
 const VideoIcon = () => <span className="text-lg leading-none">▶</span>
 const ProfileIcon = () => <span className="text-lg leading-none">◉</span>
+const GoogleIcon = () => (
+  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="#4285F4" d="M21.35 12.27c0-.72-.06-1.42-.18-2.09H12v3.96h5.24a4.48 4.48 0 01-1.94 2.94v2.45h3.14c1.84-1.7 2.91-4.2 2.91-7.26z" />
+    <path fill="#34A853" d="M12 21.7c2.63 0 4.84-.87 6.45-2.35l-3.14-2.45c-.87.58-1.98.93-3.31.93-2.54 0-4.7-1.72-5.47-4.03H3.28v2.53A9.74 9.74 0 0012 21.7z" />
+    <path fill="#FBBC05" d="M6.53 13.8a5.85 5.85 0 010-3.6V7.67H3.28a9.73 9.73 0 000 8.66l3.25-2.53z" />
+    <path fill="#EA4335" d="M12 6.17c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.84 3.28 14.63 2.3 12 2.3a9.74 9.74 0 00-8.72 5.37l3.25 2.53C7.3 7.89 9.46 6.17 12 6.17z" />
+  </svg>
+)
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -236,6 +244,10 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
         setAuthError(result.error.message)
         return
       }
+      if (authMode === "sign-up" && !result.data.session) {
+        setAuthError("Account created. Check your email to confirm your account, then sign in.")
+        return
+      }
       setShowSignIn(false)
       setPassword("")
       return
@@ -244,6 +256,16 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
     if (!fanName.trim()) return
     setSignedIn(true)
     setShowSignIn(false)
+  }
+
+  const handleGoogleSignIn = async () => {
+    if (!supabase) return
+    setAuthError("")
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
+    })
+    if (error) setAuthError(error.message)
   }
 
   const handleSignOut = async () => {
@@ -386,7 +408,7 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
 
       {showSignIn && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center" onClick={() => setShowSignIn(false)}>
-          <form onSubmit={handleSignIn} onClick={event => event.stopPropagation()} className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"><div className="mb-5 flex items-center justify-between"><div><p className="text-xs font-semibold uppercase tracking-widest text-[#A41E14]">Fan access</p><h2 className="mt-1 text-2xl font-bold">{authMode === "sign-in" ? "Sign in" : "Create account"}</h2></div><button type="button" onClick={() => setShowSignIn(false)} className="rounded-full bg-[#F5F5F5] p-2"><XIcon /></button></div>{isSupabaseConfigured ? <><label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</label><input autoFocus type="email" required value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /><label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Password</label><input type="password" required minLength={6} value={password} onChange={event => setPassword(event.target.value)} placeholder="At least 6 characters" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /><label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Display name</label><input value={fanName} onChange={event => setFanName(event.target.value)} placeholder="DJ Jaygee fan" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /></> : <><label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Your name</label><input autoFocus required value={fanName} onChange={event => setFanName(event.target.value)} placeholder="Enter your name" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /></>}{authError && <p className="mt-3 text-xs text-red-600">{authError}</p>}<button type="submit" className="mt-4 w-full rounded-xl bg-[#A41E14] px-4 py-3 text-sm font-semibold text-white">{authMode === "sign-in" ? "Continue" : "Create account"}</button>{isSupabaseConfigured && <button type="button" onClick={() => { setAuthMode(mode => mode === "sign-in" ? "sign-up" : "sign-in"); setAuthError("") }} className="mt-3 w-full text-center text-xs font-semibold text-[#A41E14]">{authMode === "sign-in" ? "Create a new account" : "Already have an account? Sign in"}</button>}</form>
+          <form onSubmit={handleSignIn} onClick={event => event.stopPropagation()} className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"><div className="mb-5 flex items-center justify-between"><div><p className="text-xs font-semibold uppercase tracking-widest text-[#A41E14]">Fan access</p><h2 className="mt-1 text-2xl font-bold">{authMode === "sign-in" ? "Sign in" : "Create account"}</h2></div><button type="button" onClick={() => setShowSignIn(false)} className="rounded-full bg-[#F5F5F5] p-2"><XIcon /></button></div>{isSupabaseConfigured ? <><label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</label><input autoFocus type="email" required value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /><label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Password</label><input type="password" required minLength={6} value={password} onChange={event => setPassword(event.target.value)} placeholder="At least 6 characters" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /><label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Display name</label><input value={fanName} onChange={event => setFanName(event.target.value)} placeholder="DJ Jaygee fan" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /></> : <><label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Your name</label><input autoFocus required value={fanName} onChange={event => setFanName(event.target.value)} placeholder="Enter your name" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /></>}{authError && <p className="mt-3 text-xs text-red-600">{authError}</p>}{isSupabaseConfigured && <><button type="button" onClick={handleGoogleSignIn} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-[#111111] hover:bg-gray-50"><GoogleIcon /> Continue with Google</button><div className="my-4 flex items-center gap-3 text-[10px] uppercase tracking-widest text-gray-400"><span className="h-px flex-1 bg-gray-200" />or<span className="h-px flex-1 bg-gray-200" /></div></>}<button type="submit" className="w-full rounded-xl bg-[#A41E14] px-4 py-3 text-sm font-semibold text-white">{authMode === "sign-in" ? "Continue" : "Create account"}</button>{isSupabaseConfigured && <button type="button" onClick={() => { setAuthMode(mode => mode === "sign-in" ? "sign-up" : "sign-in"); setAuthError("") }} className="mt-3 w-full text-center text-xs font-semibold text-[#A41E14]">{authMode === "sign-in" ? "Create a new account" : "Already have an account? Sign in"}</button>}</form>
         </div>
       )}
     </div>

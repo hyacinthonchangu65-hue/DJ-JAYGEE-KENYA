@@ -8,6 +8,9 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now()
 );
 
+alter table public.profiles add column if not exists email text;
+alter table public.profiles add column if not exists auth_provider text not null default 'email';
+
 create table if not exists public.mixes (
   id uuid primary key default gen_random_uuid(),
   title text not null,
@@ -178,8 +181,17 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.profiles (id, display_name)
-  values (new.id, new.raw_user_meta_data ->> 'display_name');
+  insert into public.profiles (id, display_name, email, auth_provider)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data ->> 'display_name', new.raw_user_meta_data ->> 'full_name', split_part(new.email, '@', 1)),
+    new.email,
+    coalesce(new.raw_app_meta_data ->> 'provider', 'email')
+  )
+  on conflict (id) do update set
+    display_name = coalesce(excluded.display_name, public.profiles.display_name),
+    email = excluded.email,
+    auth_provider = excluded.auth_provider;
   return new;
 end;
 $$;
