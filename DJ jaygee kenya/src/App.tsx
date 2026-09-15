@@ -1,8 +1,11 @@
-import { useState, useEffect } from "react"
+import { useRef, useState, useEffect } from "react"
+import type { User } from "@supabase/supabase-js"
 import djPerformingImg from "@/imports/WhatsApp_Image_2026-09-04_at_6.45.25_PM.jpeg"
 import djPortraitImg from "@/imports/IMG_20260905_101444_202.jpg.jpeg"
 import djFullBodyImg from "@/imports/WhatsApp_Image_2026-09-05_at_10.21.22_AM.jpeg"
 import logoImg from "@/imports/WhatsApp_Image_2026-09-04_at_6.45.26_PM.jpeg"
+import { isSupabaseConfigured, supabase } from "@/lib/supabase"
+import { demoEvents, demoMixes, demoVideos, type Mix } from "@/lib/content"
 
 const U = {
   wedding:    "https://images.unsplash.com/photo-1761110787206-2cc164e4913c?w=900&h=650&fit=crop&auto=format",
@@ -136,6 +139,9 @@ const CalendarIcon = () => (
     <rect x="3" y="4" width="18" height="17" rx="2" /><path strokeLinecap="round" d="M16 2v4M8 2v4M3 10h18" />
   </svg>
 )
+const MusicIcon = () => <span className="text-lg leading-none">♫</span>
+const VideoIcon = () => <span className="text-lg leading-none">▶</span>
+const ProfileIcon = () => <span className="text-lg leading-none">◉</span>
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -175,23 +181,63 @@ const eventTypes = [
   { label: "Special Events", img: U.equipment },
 ]
 
-type AppTab = "home" | "fans" | "conversations" | "booking"
+type AppTab = "home" | "music" | "videos" | "events" | "profile" | "fans" | "conversations" | "booking"
 
 function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isInstalled: boolean }) {
   const [activeTab, setActiveTab] = useState<AppTab>("home")
   const [signedIn, setSignedIn] = useState(false)
+  const [authUser, setAuthUser] = useState<User | null>(null)
   const [showSignIn, setShowSignIn] = useState(false)
   const [fanName, setFanName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [authMode, setAuthMode] = useState<"sign-in" | "sign-up">("sign-in")
+  const [authError, setAuthError] = useState("")
   const [draftMessage, setDraftMessage] = useState("")
+  const [playingMix, setPlayingMix] = useState<Mix | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
   const [messages, setMessages] = useState([
     { from: "DJ Jaygee", text: "Welcome to the DJ Jaygee fan space. What are you planning?", mine: false },
   ])
 
-  const handleSignIn = (event: React.FormEvent) => {
+  useEffect(() => {
+    if (!supabase) return
+
+    supabase.auth.getUser().then(({ data }) => setAuthUser(data.user))
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthUser(session?.user ?? null)
+    })
+    return () => listener.subscription.unsubscribe()
+  }, [])
+
+  const isUserSignedIn = signedIn || Boolean(authUser)
+
+  const handleSignIn = async (event: React.FormEvent) => {
     event.preventDefault()
+    setAuthError("")
+
+    if (isSupabaseConfigured && supabase) {
+      const result = authMode === "sign-in"
+        ? await supabase.auth.signInWithPassword({ email, password })
+        : await supabase.auth.signUp({ email, password, options: { data: { display_name: fanName } } })
+      if (result.error) {
+        setAuthError(result.error.message)
+        return
+      }
+      setShowSignIn(false)
+      setPassword("")
+      return
+    }
+
     if (!fanName.trim()) return
     setSignedIn(true)
     setShowSignIn(false)
+  }
+
+  const handleSignOut = async () => {
+    if (supabase) await supabase.auth.signOut()
+    setSignedIn(false)
+    setAuthUser(null)
   }
 
   const sendMessage = (event: React.FormEvent) => {
@@ -203,9 +249,10 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
 
   const navItems: { id: AppTab; label: string; icon: React.ReactNode }[] = [
     { id: "home", label: "Home", icon: <HomeIcon /> },
-    { id: "fans", label: "Fans", icon: <UsersIcon /> },
-    { id: "conversations", label: "Chat", icon: <ChatIcon /> },
-    { id: "booking", label: "Book", icon: <CalendarIcon /> },
+    { id: "music", label: "Music", icon: <MusicIcon /> },
+    { id: "videos", label: "Videos", icon: <VideoIcon /> },
+    { id: "events", label: "Events", icon: <CalendarIcon /> },
+    { id: "profile", label: "Profile", icon: <ProfileIcon /> },
   ]
 
   return (
@@ -226,10 +273,10 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
               </button>
             )}
             <button
-              onClick={() => signedIn ? setSignedIn(false) : setShowSignIn(true)}
+              onClick={() => isUserSignedIn ? handleSignOut() : setShowSignIn(true)}
               className="rounded-full bg-[#A41E14] px-3 py-2 text-[10px] font-semibold tracking-wide"
             >
-              {signedIn ? "SIGN OUT" : "SIGN IN"}
+              {isUserSignedIn ? "SIGN OUT" : "SIGN IN"}
             </button>
           </div>
         </div>
@@ -262,6 +309,29 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
           </div>
         )}
 
+        {activeTab === "music" && (
+          <div className="space-y-5">
+            <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Listen now</p><h1 className="mt-1 text-3xl font-bold">Music library</h1><p className="mt-2 text-sm text-gray-500">Fresh sounds, party starters, and late-night selections from DJ JayGee.</p></div>
+            <div className="flex gap-2 overflow-x-auto pb-1">{["Latest", "Afrobeat", "Amapiano", "House", "Exclusive"].map(category => <button key={category} className="whitespace-nowrap rounded-full bg-white px-4 py-2 text-xs font-semibold shadow-sm first:bg-[#A41E14] first:text-white">{category}</button>)}</div>
+            <div className="space-y-3">
+              {demoMixes.map(mix => <article key={mix.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm"><img src={mix.artwork} alt={mix.title} className="h-20 w-20 rounded-xl object-cover" /><div className="min-w-0 flex-1"><h2 className="truncate font-bold">{mix.title}</h2><p className="mt-1 text-xs text-gray-500">DJ JayGee · {mix.genre}</p><p className="mt-2 text-[10px] text-gray-400">{mix.duration} · {mix.plays} plays</p></div><button onClick={() => { setPlayingMix(mix); setIsPlaying(true) }} className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#A41E14] text-sm text-white">▶</button></article>)}
+            </div>
+            {playingMix && <div className="sticky bottom-20 rounded-2xl bg-[#111111] p-3 text-white shadow-2xl"><div className="flex items-center gap-3"><img src={playingMix.artwork} alt="" className="h-12 w-12 rounded-lg object-cover" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{playingMix.title}</p><p className="text-xs text-white/50">{playingMix.genre} · {playingMix.duration}</p></div><button onClick={() => setIsPlaying(value => !value)} className="h-10 w-10 rounded-full bg-[#A41E14] text-sm">{isPlaying ? "Ⅱ" : "▶"}</button></div><div className="mt-3 h-1 overflow-hidden rounded-full bg-white/15"><div className={`h-full w-1/3 bg-[#C96B6B] ${isPlaying ? "animate-pulse" : ""}`} /></div></div>}
+          </div>
+        )}
+
+        {activeTab === "videos" && (
+          <div className="space-y-5"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Watch</p><h1 className="mt-1 text-3xl font-bold">DJ JayGee TV</h1><p className="mt-2 text-sm text-gray-500">Live performances, behind-the-scenes moments, and event energy.</p></div><div className="space-y-4">{demoVideos.map(video => <article key={video.id} className="overflow-hidden rounded-2xl bg-white shadow-sm"><a href={video.url} target="_blank" rel="noreferrer" className="relative block"><img src={video.thumbnail} alt={video.title} className="h-52 w-full object-cover" /><span className="absolute inset-0 flex items-center justify-center"><span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#A41E14] text-white shadow-xl">▶</span></span><span className="absolute bottom-3 right-3 rounded bg-black/75 px-2 py-1 text-[10px] text-white">{video.duration}</span></a><div className="p-4"><p className="text-[10px] font-semibold uppercase tracking-widest text-[#A41E14]">{video.category}</p><h2 className="mt-1 font-bold">{video.title}</h2><p className="mt-1 text-xs text-gray-500">{video.views} views</p></div></article>)}</div></div>
+        )}
+
+        {activeTab === "events" && (
+          <div className="space-y-5"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Live calendar</p><h1 className="mt-1 text-3xl font-bold">Upcoming events</h1><p className="mt-2 text-sm text-gray-500">Catch DJ JayGee live or bring the sound to your own occasion.</p></div><div className="space-y-4">{demoEvents.map(event => <article key={event.id} className="overflow-hidden rounded-2xl bg-white shadow-sm"><img src={event.artwork} alt={event.title} className="h-44 w-full object-cover" /><div className="p-5"><p className="text-xs font-bold tracking-widest text-[#A41E14]">{event.date}</p><h2 className="mt-1 text-xl font-bold">{event.title}</h2><p className="mt-1 text-sm font-medium">{event.venue} · {event.location}</p><p className="mt-3 text-sm leading-relaxed text-gray-500">{event.description}</p><button onClick={() => setActiveTab("booking")} className="mt-4 w-full rounded-xl bg-[#111111] px-4 py-3 text-sm font-semibold text-white">Book DJ JayGee</button></div></article>)}</div></div>
+        )}
+
+        {activeTab === "profile" && (
+          <div className="space-y-5"><div className="rounded-3xl bg-[#111111] p-6 text-white"><div className="flex items-center gap-4"><img src={logoImg} alt="DJ JayGee Kenya" className="h-16 w-16 rounded-2xl object-cover" /><div><p className="text-xs uppercase tracking-widest text-[#C96B6B]">Official profile</p><h1 className="mt-1 text-2xl font-bold">{authUser?.user_metadata?.display_name || fanName || "DJ JayGee Fan"}</h1><p className="mt-1 text-sm text-white/55">{isUserSignedIn ? "Connected to DJ JayGee" : "Explore as a guest"}</p></div></div><button onClick={() => isUserSignedIn ? handleSignOut() : setShowSignIn(true)} className="mt-6 w-full rounded-xl bg-[#A41E14] px-4 py-3 text-sm font-semibold">{isUserSignedIn ? "Sign out" : "Sign in to unlock your profile"}</button></div><div className="grid grid-cols-2 gap-3">{[{ label: "Saved mixes", value: "0" }, { label: "Events", value: "6+" }, { label: "Following", value: "DJ JayGee" }, { label: "Bookings", value: "Open" }].map(item => <div key={item.label} className="rounded-2xl bg-white p-4 shadow-sm"><p className="text-lg font-bold">{item.value}</p><p className="mt-1 text-xs text-gray-500">{item.label}</p></div>)}</div><button onClick={() => setActiveTab("conversations")} className="flex w-full items-center justify-between rounded-2xl bg-white px-5 py-4 text-sm font-semibold shadow-sm">Fan conversations <ChevronDownIcon /></button><button onClick={() => setActiveTab("booking")} className="flex w-full items-center justify-between rounded-2xl bg-white px-5 py-4 text-sm font-semibold shadow-sm">Book DJ JayGee <ChevronDownIcon /></button></div>
+        )}
+
         {activeTab === "fans" && (
           <div className="space-y-5">
             <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Community</p><h1 className="mt-1 text-3xl font-bold">Fan page</h1><p className="mt-2 text-sm text-gray-500">Stay close to the sound and share the moments.</p></div>
@@ -282,8 +352,8 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
             <div className="flex-1 space-y-3 rounded-2xl bg-white p-4 shadow-sm">
               {messages.map((message, index) => <div key={index} className={`flex ${message.mine ? "justify-end" : "justify-start"}`}><div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${message.mine ? "rounded-br-md bg-[#A41E14] text-white" : "rounded-bl-md bg-[#F5F5F5] text-[#111111]"}`}><span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide opacity-60">{message.from}</span>{message.text}</div></div>)}
             </div>
-            <form onSubmit={sendMessage} className="mt-4 flex gap-2"><input value={draftMessage} onChange={event => setDraftMessage(event.target.value)} placeholder={signedIn ? "Write a message..." : "Sign in to chat"} disabled={!signedIn} className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /><button type="submit" disabled={!signedIn} className="rounded-xl bg-[#111111] px-4 text-sm font-semibold text-white disabled:opacity-40">Send</button></form>
-            {!signedIn && <button onClick={() => setShowSignIn(true)} className="mt-3 text-center text-xs font-semibold text-[#A41E14]">Sign in to join the conversation</button>}
+            <form onSubmit={sendMessage} className="mt-4 flex gap-2"><input value={draftMessage} onChange={event => setDraftMessage(event.target.value)} placeholder={isUserSignedIn ? "Write a message..." : "Sign in to chat"} disabled={!isUserSignedIn} className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /><button type="submit" disabled={!isUserSignedIn} className="rounded-xl bg-[#111111] px-4 text-sm font-semibold text-white disabled:opacity-40">Send</button></form>
+            {!isUserSignedIn && <button onClick={() => setShowSignIn(true)} className="mt-3 text-center text-xs font-semibold text-[#A41E14]">Sign in to join the conversation</button>}
           </div>
         )}
 
@@ -304,7 +374,7 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
 
       {showSignIn && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center" onClick={() => setShowSignIn(false)}>
-          <form onSubmit={handleSignIn} onClick={event => event.stopPropagation()} className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"><div className="mb-5 flex items-center justify-between"><div><p className="text-xs font-semibold uppercase tracking-widest text-[#A41E14]">Fan access</p><h2 className="mt-1 text-2xl font-bold">Sign in</h2></div><button type="button" onClick={() => setShowSignIn(false)} className="rounded-full bg-[#F5F5F5] p-2"><XIcon /></button></div><label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Your name</label><input autoFocus value={fanName} onChange={event => setFanName(event.target.value)} placeholder="Enter your name" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /><button type="submit" className="mt-4 w-full rounded-xl bg-[#A41E14] px-4 py-3 text-sm font-semibold text-white">Continue</button></form>
+          <form onSubmit={handleSignIn} onClick={event => event.stopPropagation()} className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"><div className="mb-5 flex items-center justify-between"><div><p className="text-xs font-semibold uppercase tracking-widest text-[#A41E14]">Fan access</p><h2 className="mt-1 text-2xl font-bold">{authMode === "sign-in" ? "Sign in" : "Create account"}</h2></div><button type="button" onClick={() => setShowSignIn(false)} className="rounded-full bg-[#F5F5F5] p-2"><XIcon /></button></div>{isSupabaseConfigured ? <><label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</label><input autoFocus type="email" required value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /><label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Password</label><input type="password" required minLength={6} value={password} onChange={event => setPassword(event.target.value)} placeholder="At least 6 characters" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /><label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Display name</label><input value={fanName} onChange={event => setFanName(event.target.value)} placeholder="DJ Jaygee fan" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /></> : <><label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Your name</label><input autoFocus required value={fanName} onChange={event => setFanName(event.target.value)} placeholder="Enter your name" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /></>}{authError && <p className="mt-3 text-xs text-red-600">{authError}</p>}<button type="submit" className="mt-4 w-full rounded-xl bg-[#A41E14] px-4 py-3 text-sm font-semibold text-white">{authMode === "sign-in" ? "Continue" : "Create account"}</button>{isSupabaseConfigured && <button type="button" onClick={() => { setAuthMode(mode => mode === "sign-in" ? "sign-up" : "sign-in"); setAuthError("") }} className="mt-3 w-full text-center text-xs font-semibold text-[#A41E14]">{authMode === "sign-in" ? "Create a new account" : "Already have an account? Sign in"}</button>}</form>
         </div>
       )}
     </div>
