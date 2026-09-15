@@ -106,6 +106,16 @@ const YouTubeIcon = ({ className = "w-5 h-5" }) => (
     <path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z" />
   </svg>
 )
+const DownloadIcon = () => (
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" />
+  </svg>
+)
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>
+}
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
@@ -145,6 +155,8 @@ const eventTypes = [
 export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [isInstalled, setIsInstalled] = useState(false)
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null)
   const [formData, setFormData] = useState({ name: "", phone: "", email: "", eventType: "", date: "", location: "", guests: "", message: "" })
   const [formSubmitted, setFormSubmitted] = useState(false)
@@ -156,6 +168,26 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    setIsInstalled(window.matchMedia("(display-mode: standalone)").matches)
+
+    const onBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault()
+      setInstallPrompt(event as BeforeInstallPromptEvent)
+    }
+    const onAppInstalled = () => {
+      setIsInstalled(true)
+      setInstallPrompt(null)
+    }
+
+    window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt)
+    window.addEventListener("appinstalled", onAppInstalled)
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt)
+      window.removeEventListener("appinstalled", onAppInstalled)
+    }
+  }, [])
+
+  useEffect(() => {
     if (lightbox) document.body.style.overflow = "hidden"
     else document.body.style.overflow = ""
     return () => { document.body.style.overflow = "" }
@@ -164,6 +196,19 @@ export default function App() {
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
     setMobileMenuOpen(false)
+  }
+
+  const handleInstall = async () => {
+    if (isInstalled) return
+
+    if (installPrompt) {
+      await installPrompt.prompt()
+      await installPrompt.userChoice
+      setInstallPrompt(null)
+      return
+    }
+
+    window.alert("To install DJ Jaygee Kenya, open your browser menu and choose 'Add to Home Screen' or 'Install app'.")
   }
 
   const navLinks = [
@@ -259,6 +304,16 @@ export default function App() {
               >
                 BOOK NOW
               </button>
+              {!isInstalled && (
+                <button
+                  onClick={handleInstall}
+                  className="hidden sm:flex items-center gap-1.5 border border-white/25 text-white text-xs font-semibold px-4 py-2.5 rounded-full hover:bg-white/10 transition-all duration-200 tracking-wider"
+                  aria-label="Install DJ Jaygee Kenya app"
+                >
+                  <DownloadIcon />
+                  INSTALL APP
+                </button>
+              )}
               <button
                 onClick={() => setMobileMenuOpen(v => !v)}
                 className="lg:hidden text-white p-1.5"
@@ -293,6 +348,15 @@ export default function App() {
               >
                 BOOK DJ JAYGEE
               </button>
+              {!isInstalled && (
+                <button
+                  onClick={handleInstall}
+                  className="mt-2 flex items-center justify-center gap-2 border border-white/20 text-white text-sm font-semibold px-5 py-3 rounded-full hover:bg-white/10 transition-colors w-full tracking-wide"
+                >
+                  <DownloadIcon />
+                  INSTALL APP
+                </button>
+              )}
             </div>
           </div>
         )}
