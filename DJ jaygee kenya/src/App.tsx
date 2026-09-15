@@ -101,8 +101,8 @@ const TikTokIcon = () => (
     <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.41a8.16 8.16 0 004.77 1.52V7.48a4.85 4.85 0 01-1-.79z" />
   </svg>
 )
-const YouTubeIcon = () => (
-  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+const YouTubeIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
     <path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z" />
   </svg>
 )
@@ -505,7 +505,7 @@ export default function App() {
               rel="noreferrer"
               className="inline-flex items-center gap-2 mt-5 bg-[#D71920] text-white text-xs font-semibold px-4 py-2.5 rounded-full hover:bg-red-700 transition-colors duration-200 tracking-wide"
             >
-              <YouTubeIcon />
+              <YouTubeIcon className="w-5 h-5 flex-shrink-0 text-white" />
               Watch on YouTube
             </a>
             <p className="text-gray-500 mt-4 max-w-xl mx-auto text-base leading-relaxed">
