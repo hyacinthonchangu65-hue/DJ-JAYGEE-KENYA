@@ -2,14 +2,14 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-brand-sapphire: #3C507D;
-  --color-brand-royal-blue: #112250;
-  --color-brand-quicksand: #E0C58F;
+  --color-brand-sapphire: #A63A3A;
+  --color-brand-royal-blue: #7C1D24;
+  --color-brand-quicksand: #C96B6B;
   --color-brand-swan-wing: #F5F0E9;
   --color-brand-shellstone: #D9CBC2;
-  --color-brand-black: #112250;
-  --color-brand-red: #3C507D;
-  --color-brand-dark: #112250;
+  --color-brand-black: #7C1D24;
+  --color-brand-red: #A41E14;
+  --color-brand-dark: #7C1D24;
   --color-brand-gray: #F5F0E9;
   --font-display: 'Playfair Display', Georgia, serif;
   --font-body: 'Outfit', system-ui, sans-serif;
@@ -53,30 +53,30 @@ body {
 /* Hide scrollbar while still scrollable */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #3C507D; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #A63A3A; border-radius: 3px; }
 
 /* Keep the existing component markup aligned with the updated brand palette. */
 [class~="bg-[#111111]"],
-[class~="bg-[#111111]/95"] { background-color: #112250 !important; }
-[class~="bg-[#242424]"] { background-color: #3C507D !important; }
+[class~="bg-[#111111]/95"] { background-color: #7C1D24 !important; }
+[class~="bg-[#242424]"] { background-color: #A63A3A !important; }
 [class~="bg-[#F5F5F5]"],
 [class~="bg-white"] { background-color: #F5F0E9 !important; }
-[class~="bg-[#D71920]"] { background-color: #3C507D !important; }
+[class~="bg-[#D71920]"] { background-color: #A41E14 !important; }
 [class~="text-[#111111]"],
-[class~="text-[#242424]"] { color: #112250 !important; }
+[class~="text-[#242424]"] { color: #7C1D24 !important; }
 [class~="text-[#D71920]"],
-[class~="text-red-100"] { color: #E0C58F !important; }
+[class~="text-red-100"] { color: #C96B6B !important; }
 [class~="text-gray-400"],
 [class~="text-gray-500"],
-[class~="text-gray-600"] { color: #3C507D !important; }
-[class~="border-[#111111]"] { border-color: #112250 !important; }
-[class~="border-gray-200"] { border-color: #D9CBC2 !important; }
-[class~="bg-gray-200"] { background-color: #D9CBC2 !important; }
-[class~="bg-gray-800"] { background-color: #112250 !important; }
-[class~="bg-[#D71920]/10"] { background-color: rgb(60 80 125 / 0.1) !important; }
-[class~="text-[#D71920]/20"] { color: rgb(224 197 143 / 0.45) !important; }
-[class~="hover:bg-red-700"]:hover { background-color: #112250 !important; }
-[class~="hover:bg-[#D71920]"]:hover { background-color: #3C507D !important; }
-[class~="hover:border-[#D71920]/30"]:hover { border-color: rgb(224 197 143 / 0.5) !important; }
-[class~="border-[#D71920]"] { border-color: #E0C58F !important; }
+[class~="text-gray-600"] { color: #A63A3A !important; }
+[class~="border-[#111111]"] { border-color: #7C1D24 !important; }
+[class~="border-gray-200"] { border-color: #C96B6B !important; }
+[class~="bg-gray-200"] { background-color: #C96B6B !important; }
+[class~="bg-gray-800"] { background-color: #7C1D24 !important; }
+[class~="bg-[#D71920]/10"] { background-color: rgb(164 30 20 / 0.1) !important; }
+[class~="text-[#D71920]/20"] { color: rgb(201 107 107 / 0.45) !important; }
+[class~="hover:bg-red-700"]:hover { background-color: #7C1D24 !important; }
+[class~="hover:bg-[#D71920]"]:hover { background-color: #A63A3A !important; }
+[class~="hover:border-[#D71920]/30"]:hover { border-color: rgb(201 107 107 / 0.5) !important; }
+[class~="border-[#D71920]"] { border-color: #C96B6B !important; }
 [class~="bg-white/95"] { background-color: rgb(245 240 233 / 0.95) !important; }
