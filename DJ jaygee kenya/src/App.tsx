@@ -6,6 +6,7 @@ import djFullBodyImg from "@/imports/WhatsApp_Image_2026-09-05_at_10.21.22_AM.jp
 import logoImg from "@/imports/WhatsApp_Image_2026-09-04_at_6.45.26_PM.jpeg"
 import { isSupabaseConfigured, supabase } from "@/lib/supabase"
 import { demoEvents, demoMixes, demoVideos, type Mix } from "@/lib/content"
+import { createAnonymousBooking, getPublishedMixes, getPublishedVideos, getUpcomingEvents } from "@/lib/api"
 
 const U = {
   wedding:    "https://images.unsplash.com/photo-1761110787206-2cc164e4913c?w=900&h=650&fit=crop&auto=format",
@@ -199,6 +200,17 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
   const [messages, setMessages] = useState([
     { from: "DJ Jaygee", text: "Welcome to the DJ Jaygee fan space. What are you planning?", mine: false },
   ])
+  const [mixes, setMixes] = useState(demoMixes)
+  const [videos, setVideos] = useState(demoVideos)
+  const [events, setEvents] = useState(demoEvents)
+
+  useEffect(() => {
+    Promise.all([getPublishedMixes(), getPublishedVideos(), getUpcomingEvents()]).then(([liveMixes, liveVideos, liveEvents]) => {
+      if (liveMixes.length) setMixes(liveMixes.map(mix => ({ id: mix.id, title: mix.title, genre: mix.genre || "DJ JayGee", duration: mix.duration_seconds ? `${Math.floor(mix.duration_seconds / 60)}:${String(mix.duration_seconds % 60).padStart(2, "0")}` : "Mix", plays: `${mix.plays}`, artwork: mix.artwork_url || demoMixes[0].artwork, audioUrl: mix.audio_url || undefined, exclusive: mix.is_exclusive })))
+      if (liveVideos.length) setVideos(liveVideos.map(video => ({ id: video.id, title: video.title, category: video.category || "DJ JayGee TV", duration: "Watch now", views: `${video.views}`, thumbnail: video.thumbnail_url || demoVideos[0].thumbnail, url: video.video_url })))
+      if (liveEvents.length) setEvents(liveEvents.map(event => ({ id: event.id, title: event.title, date: new Date(`${event.event_date}T00:00:00`).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase(), venue: event.venue || "Venue TBA", location: event.location || "Kenya", artwork: event.artwork_url || demoEvents[0].artwork, description: event.description || "DJ JayGee live experience." })))
+    }).catch(error => console.error("Unable to load live content:", error))
+  }, [])
 
   useEffect(() => {
     if (!supabase) return
@@ -314,18 +326,18 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
             <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Listen now</p><h1 className="mt-1 text-3xl font-bold">Music library</h1><p className="mt-2 text-sm text-gray-500">Fresh sounds, party starters, and late-night selections from DJ JayGee.</p></div>
             <div className="flex gap-2 overflow-x-auto pb-1">{["Latest", "Afrobeat", "Amapiano", "House", "Exclusive"].map(category => <button key={category} className="whitespace-nowrap rounded-full bg-white px-4 py-2 text-xs font-semibold shadow-sm first:bg-[#A41E14] first:text-white">{category}</button>)}</div>
             <div className="space-y-3">
-              {demoMixes.map(mix => <article key={mix.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm"><img src={mix.artwork} alt={mix.title} className="h-20 w-20 rounded-xl object-cover" /><div className="min-w-0 flex-1"><h2 className="truncate font-bold">{mix.title}</h2><p className="mt-1 text-xs text-gray-500">DJ JayGee · {mix.genre}</p><p className="mt-2 text-[10px] text-gray-400">{mix.duration} · {mix.plays} plays</p></div><button onClick={() => { setPlayingMix(mix); setIsPlaying(true) }} className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#A41E14] text-sm text-white">▶</button></article>)}
+              {mixes.map(mix => <article key={mix.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm"><img src={mix.artwork} alt={mix.title} className="h-20 w-20 rounded-xl object-cover" /><div className="min-w-0 flex-1"><h2 className="truncate font-bold">{mix.title}</h2><p className="mt-1 text-xs text-gray-500">DJ JayGee · {mix.genre}</p><p className="mt-2 text-[10px] text-gray-400">{mix.duration} · {mix.plays} plays</p></div><button onClick={() => { setPlayingMix(mix); setIsPlaying(true) }} className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#A41E14] text-sm text-white">▶</button></article>)}
             </div>
             {playingMix && <div className="sticky bottom-20 rounded-2xl bg-[#111111] p-3 text-white shadow-2xl"><div className="flex items-center gap-3"><img src={playingMix.artwork} alt="" className="h-12 w-12 rounded-lg object-cover" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{playingMix.title}</p><p className="text-xs text-white/50">{playingMix.genre} · {playingMix.duration}</p></div><button onClick={() => setIsPlaying(value => !value)} className="h-10 w-10 rounded-full bg-[#A41E14] text-sm">{isPlaying ? "Ⅱ" : "▶"}</button></div><div className="mt-3 h-1 overflow-hidden rounded-full bg-white/15"><div className={`h-full w-1/3 bg-[#C96B6B] ${isPlaying ? "animate-pulse" : ""}`} /></div></div>}
           </div>
         )}
 
         {activeTab === "videos" && (
-          <div className="space-y-5"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Watch</p><h1 className="mt-1 text-3xl font-bold">DJ JayGee TV</h1><p className="mt-2 text-sm text-gray-500">Live performances, behind-the-scenes moments, and event energy.</p></div><div className="space-y-4">{demoVideos.map(video => <article key={video.id} className="overflow-hidden rounded-2xl bg-white shadow-sm"><a href={video.url} target="_blank" rel="noreferrer" className="relative block"><img src={video.thumbnail} alt={video.title} className="h-52 w-full object-cover" /><span className="absolute inset-0 flex items-center justify-center"><span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#A41E14] text-white shadow-xl">▶</span></span><span className="absolute bottom-3 right-3 rounded bg-black/75 px-2 py-1 text-[10px] text-white">{video.duration}</span></a><div className="p-4"><p className="text-[10px] font-semibold uppercase tracking-widest text-[#A41E14]">{video.category}</p><h2 className="mt-1 font-bold">{video.title}</h2><p className="mt-1 text-xs text-gray-500">{video.views} views</p></div></article>)}</div></div>
+          <div className="space-y-5"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Watch</p><h1 className="mt-1 text-3xl font-bold">DJ JayGee TV</h1><p className="mt-2 text-sm text-gray-500">Live performances, behind-the-scenes moments, and event energy.</p></div><div className="space-y-4">{videos.map(video => <article key={video.id} className="overflow-hidden rounded-2xl bg-white shadow-sm"><a href={video.url} target="_blank" rel="noreferrer" className="relative block"><img src={video.thumbnail} alt={video.title} className="h-52 w-full object-cover" /><span className="absolute inset-0 flex items-center justify-center"><span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#A41E14] text-white shadow-xl">▶</span></span><span className="absolute bottom-3 right-3 rounded bg-black/75 px-2 py-1 text-[10px] text-white">{video.duration}</span></a><div className="p-4"><p className="text-[10px] font-semibold uppercase tracking-widest text-[#A41E14]">{video.category}</p><h2 className="mt-1 font-bold">{video.title}</h2><p className="mt-1 text-xs text-gray-500">{video.views} views</p></div></article>)}</div></div>
         )}
 
         {activeTab === "events" && (
-          <div className="space-y-5"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Live calendar</p><h1 className="mt-1 text-3xl font-bold">Upcoming events</h1><p className="mt-2 text-sm text-gray-500">Catch DJ JayGee live or bring the sound to your own occasion.</p></div><div className="space-y-4">{demoEvents.map(event => <article key={event.id} className="overflow-hidden rounded-2xl bg-white shadow-sm"><img src={event.artwork} alt={event.title} className="h-44 w-full object-cover" /><div className="p-5"><p className="text-xs font-bold tracking-widest text-[#A41E14]">{event.date}</p><h2 className="mt-1 text-xl font-bold">{event.title}</h2><p className="mt-1 text-sm font-medium">{event.venue} · {event.location}</p><p className="mt-3 text-sm leading-relaxed text-gray-500">{event.description}</p><button onClick={() => setActiveTab("booking")} className="mt-4 w-full rounded-xl bg-[#111111] px-4 py-3 text-sm font-semibold text-white">Book DJ JayGee</button></div></article>)}</div></div>
+          <div className="space-y-5"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Live calendar</p><h1 className="mt-1 text-3xl font-bold">Upcoming events</h1><p className="mt-2 text-sm text-gray-500">Catch DJ JayGee live or bring the sound to your own occasion.</p></div><div className="space-y-4">{events.map(event => <article key={event.id} className="overflow-hidden rounded-2xl bg-white shadow-sm"><img src={event.artwork} alt={event.title} className="h-44 w-full object-cover" /><div className="p-5"><p className="text-xs font-bold tracking-widest text-[#A41E14]">{event.date}</p><h2 className="mt-1 text-xl font-bold">{event.title}</h2><p className="mt-1 text-sm font-medium">{event.venue} · {event.location}</p><p className="mt-3 text-sm leading-relaxed text-gray-500">{event.description}</p><button onClick={() => setActiveTab("booking")} className="mt-4 w-full rounded-xl bg-[#111111] px-4 py-3 text-sm font-semibold text-white">Book DJ JayGee</button></div></article>)}</div></div>
         )}
 
         {activeTab === "profile" && (
@@ -471,8 +483,23 @@ export default function App() {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    try {
+      await createAnonymousBooking({
+        customer_name: formData.name,
+        phone: formData.phone,
+        email: formData.email || null,
+        event_type: formData.eventType,
+        event_date: formData.date || null,
+        venue: formData.location || null,
+        guests: formData.guests ? Number(formData.guests) : null,
+        message: formData.message || null,
+      })
+    } catch (error) {
+      console.error("Unable to save booking:", error)
+    }
+
     const whatsappMessage = [
       "Hello DJ Jaygee Kenya, I would like to request a booking.",
       "",
