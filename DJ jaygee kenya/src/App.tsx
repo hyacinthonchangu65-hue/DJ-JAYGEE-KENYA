@@ -499,6 +499,15 @@ export default function App() {
             >
               Our Services
             </h2>
+            <a
+              href="https://youtube.com/@djaygeekenya-c6q7i?si=AyMkSD7aNdAg5me2"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 mt-5 bg-[#D71920] text-white text-xs font-semibold px-4 py-2.5 rounded-full hover:bg-red-700 transition-colors duration-200 tracking-wide"
+            >
+              <YouTubeIcon />
+              Watch on YouTube
+            </a>
             <p className="text-gray-500 mt-4 max-w-xl mx-auto text-base leading-relaxed">
               Professional DJ and event entertainment services tailored to every occasion.
             </p>
