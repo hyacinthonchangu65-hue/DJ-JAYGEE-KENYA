@@ -1,0 +1,6 @@
+{
+  "framework": "vite",
+  "installCommand": "pnpm --dir \"DJ jaygee kenya\" install --frozen-lockfile",
+  "buildCommand": "pnpm --dir \"DJ jaygee kenya\" build",
+  "outputDirectory": "DJ jaygee kenya/dist"
+}

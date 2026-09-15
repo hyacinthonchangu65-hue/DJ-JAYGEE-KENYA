@@ -1,0 +1,10 @@
+{
+  "name": "dj-jaygee-kenya-workspace",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix \"DJ jaygee kenya\" run dev --",
+    "build": "npm --prefix \"DJ jaygee kenya\" run build",
+    "preview": "npm --prefix \"DJ jaygee kenya\" run preview",
+    "format": "npm --prefix \"DJ jaygee kenya\" run format"
+  }
+}
