@@ -230,7 +230,8 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
   useEffect(() => {
     Promise.all([getPublishedMixes(), getPublishedVideos(), getUpcomingEvents()]).then(([liveMixes, liveVideos, liveEvents]) => {
       if (liveMixes.length) setMixes(liveMixes.map(mix => ({ id: mix.id, title: mix.title, genre: mix.genre || "DJ JayGee", duration: mix.duration_seconds ? `${Math.floor(mix.duration_seconds / 60)}:${String(mix.duration_seconds % 60).padStart(2, "0")}` : "Mix", plays: `${mix.plays}`, artwork: mix.artwork_url || demoMixes[0].artwork, audioUrl: mix.audio_url || undefined, exclusive: mix.is_exclusive })))
-      if (liveVideos.length) setVideos(liveVideos.map(video => ({ id: video.id, title: video.title, category: video.category || "DJ JayGee TV", duration: "Watch now", views: `${video.views}`, thumbnail: video.thumbnail_url || demoVideos[0].thumbnail, url: video.video_url })))
+      const playableLiveVideos = liveVideos.filter(video => !video.video_url.includes("youtube.com/@"))
+      if (playableLiveVideos.length) setVideos(playableLiveVideos.map(video => ({ id: video.id, title: video.title, category: video.category || "DJ JayGee TV", duration: "Watch now", views: `${video.views}`, thumbnail: video.thumbnail_url || demoVideos[0].thumbnail, url: video.video_url })))
       if (liveEvents.length) setEvents(liveEvents.map(event => ({ id: event.id, title: event.title, date: new Date(`${event.event_date}T00:00:00`).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase(), venue: event.venue || "Venue TBA", location: event.location || "Kenya", artwork: event.artwork_url || demoEvents[0].artwork, description: event.description || "DJ JayGee live experience." })))
     }).catch(error => console.error("Unable to load live content:", error))
   }, [])

@@ -37,8 +37,9 @@ export const demoMixes: Mix[] = [
 ]
 
 export const demoVideos: Video[] = [
-  { id: "live-set", title: "DJ JayGee Live Set", category: "Live Performances", duration: "12:40", views: "18K", thumbnail: "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?w=900&h=600&fit=crop&auto=format", url: "https://youtube.com/@djaygeekenya-c6q7i" },
-  { id: "behind-scenes", title: "Behind the Booth", category: "Behind the Scenes", duration: "06:24", views: "5.2K", thumbnail: "https://images.unsplash.com/photo-1571266028243-d220c9c3b2b2?w=900&h=600&fit=crop&auto=format", url: "https://youtube.com/@djaygeekenya-c6q7i" },
+  { id: "intro-2026", title: "Best of DJ Jaygee Kenya Intro 2026", category: "Live Performances", duration: "Watch now", views: "114", thumbnail: "https://i3.ytimg.com/vi/rrc3XFUo7v4/hqdefault.jpg", url: "https://www.youtube.com/watch?v=rrc3XFUo7v4" },
+  { id: "short-august-31", title: "DJ Jaygee Kenya Short - August 31", category: "YouTube Shorts", duration: "Short", views: "13", thumbnail: "https://i3.ytimg.com/vi/ZFSekKStf0M/hqdefault.jpg", url: "https://www.youtube.com/shorts/ZFSekKStf0M" },
+  { id: "short-august-31-2", title: "DJ Jaygee Kenya Short - August 31", category: "YouTube Shorts", duration: "Short", views: "15", thumbnail: "https://i4.ytimg.com/vi/cGKKqW7ZeOk/hqdefault.jpg", url: "https://www.youtube.com/shorts/cGKKqW7ZeOk" },
 ]
 
 export const demoEvents: Event[] = [
