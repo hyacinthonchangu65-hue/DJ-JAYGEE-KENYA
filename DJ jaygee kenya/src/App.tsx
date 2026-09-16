@@ -264,7 +264,7 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
               email: trimmedEmail,
               password: trimmedPassword,
               options: {
-                data: { display_name: fanName || trimmedEmail.split("@")[0] },
+                data: { display_name: trimmedEmail.split("@")[0] },
                 emailRedirectTo: `${window.location.origin}/`,
               },
             })
@@ -474,19 +474,6 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
                 Sign up
               </button>
             </div>
-
-            {authMode === "signup" && (
-              <>
-                <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Your name <span className="font-normal normal-case">(optional)</span></label>
-                <input
-                  autoFocus={authMode === "signup" && isSupabaseConfigured}
-                  value={fanName}
-                  onChange={event => setFanName(event.target.value)}
-                  placeholder="DJ Jaygee fan"
-                  className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]"
-                />
-              </>
-            )}
 
             <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Email address</label>
             <input autoFocus={authMode === "signin"} type="email" required value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" />
