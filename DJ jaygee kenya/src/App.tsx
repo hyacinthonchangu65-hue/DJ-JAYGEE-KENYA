@@ -518,6 +518,15 @@ export default function App() {
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null)
   const [formData, setFormData] = useState({ name: "", phone: "", email: "", eventType: "", date: "", location: "", guests: "", message: "" })
   const [formSubmitted, setFormSubmitted] = useState(false)
+  const [websiteAuthOpen, setWebsiteAuthOpen] = useState(false)
+  const [websiteAuthMode, setWebsiteAuthMode] = useState<"signin" | "signup">("signup")
+  const [websiteEmail, setWebsiteEmail] = useState("")
+  const [websitePassword, setWebsitePassword] = useState("")
+  const [websiteConfirmPassword, setWebsiteConfirmPassword] = useState("")
+  const [websiteAuthLoading, setWebsiteAuthLoading] = useState(false)
+  const [websiteAuthError, setWebsiteAuthError] = useState("")
+  const [websiteAuthMessage, setWebsiteAuthMessage] = useState("")
+  const [websiteAuthUser, setWebsiteAuthUser] = useState<User | null>(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
@@ -555,6 +564,13 @@ export default function App() {
     return () => { document.body.style.overflow = "" }
   }, [lightbox])
 
+  useEffect(() => {
+    if (!supabase) return
+    supabase.auth.getUser().then(({ data }) => setWebsiteAuthUser(data.user))
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setWebsiteAuthUser(session?.user ?? null))
+    return () => listener.subscription.unsubscribe()
+  }, [])
+
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
     setMobileMenuOpen(false)
@@ -571,6 +587,74 @@ export default function App() {
     }
 
     window.alert("To install DJ Jaygee Kenya, open your browser menu and choose 'Add to Home Screen' or 'Install app'.")
+  }
+
+  const handleWebsiteAuth = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setWebsiteAuthError("")
+    setWebsiteAuthMessage("")
+    const trimmedEmail = websiteEmail.trim()
+    const trimmedPassword = websitePassword.trim()
+
+    if (!trimmedEmail || !trimmedPassword) {
+      setWebsiteAuthError("Email and password are required.")
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setWebsiteAuthError("Enter a valid email address.")
+      return
+    }
+    if (trimmedPassword.length < 6) {
+      setWebsiteAuthError("Password must be at least 6 characters long.")
+      return
+    }
+    if (websiteAuthMode === "signup" && trimmedPassword !== websiteConfirmPassword.trim()) {
+      setWebsiteAuthError("Passwords do not match.")
+      return
+    }
+    if (!supabase || !isSupabaseConfigured) {
+      setWebsiteAuthError("Email authentication is not configured. Please try again later.")
+      return
+    }
+
+    setWebsiteAuthLoading(true)
+    try {
+      const result = websiteAuthMode === "signup"
+        ? await supabase.auth.signUp({
+            email: trimmedEmail,
+            password: trimmedPassword,
+            options: {
+              data: { display_name: trimmedEmail.split("@")[0] },
+              emailRedirectTo: `${window.location.origin}/`,
+            },
+          })
+        : await supabase.auth.signInWithPassword({ email: trimmedEmail, password: trimmedPassword })
+
+      if (result.error) {
+        setWebsiteAuthError(result.error.message)
+        return
+      }
+      if (websiteAuthMode === "signup" && result.data.user && !result.data.session) {
+        setWebsiteAuthMessage("Account created. Check your email to confirm sign in.")
+        setWebsiteAuthMode("signin")
+        setWebsitePassword("")
+        setWebsiteConfirmPassword("")
+        return
+      }
+      setWebsiteAuthOpen(false)
+      setWebsiteEmail("")
+      setWebsitePassword("")
+      setWebsiteConfirmPassword("")
+    } catch (error) {
+      setWebsiteAuthError(error instanceof Error ? error.message : "Unable to complete authentication.")
+    } finally {
+      setWebsiteAuthLoading(false)
+    }
+  }
+
+  const handleWebsiteSignOut = async () => {
+    if (supabase) await supabase.auth.signOut()
+    setWebsiteAuthUser(null)
   }
 
   const navLinks = [
@@ -696,6 +780,21 @@ export default function App() {
                 </button>
               )}
               <button
+                onClick={() => {
+                  if (websiteAuthUser) {
+                    void handleWebsiteSignOut()
+                    return
+                  }
+                  setWebsiteAuthMode("signup")
+                  setWebsiteAuthError("")
+                  setWebsiteAuthMessage("")
+                  setWebsiteAuthOpen(true)
+                }}
+                className="hidden sm:block bg-[#D71920] text-white text-xs font-semibold px-4 py-2.5 rounded-full hover:bg-red-700 transition-all duration-200 tracking-wider"
+              >
+                {websiteAuthUser ? "SIGN OUT" : "SIGN UP / SIGN IN"}
+              </button>
+              <button
                 onClick={() => setMobileMenuOpen(v => !v)}
                 className="lg:hidden text-white p-1.5"
                 aria-label="Toggle menu"
@@ -738,6 +837,18 @@ export default function App() {
                   INSTALL APP
                 </button>
               )}
+              <button
+                onClick={() => {
+                  setWebsiteAuthMode("signup")
+                  setWebsiteAuthError("")
+                  setWebsiteAuthMessage("")
+                  setWebsiteAuthOpen(true)
+                  setMobileMenuOpen(false)
+                }}
+                className="mt-2 bg-[#D71920] text-white text-sm font-semibold px-5 py-3 rounded-full hover:bg-red-700 transition-colors w-full tracking-wide"
+              >
+                {websiteAuthUser ? "ACCOUNT / SIGN OUT" : "SIGN UP / SIGN IN"}
+              </button>
             </div>
           </div>
         )}
@@ -1544,6 +1655,41 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {websiteAuthOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4" onClick={() => setWebsiteAuthOpen(false)}>
+          <form onSubmit={handleWebsiteAuth} onClick={event => event.stopPropagation()} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-[#D71920]">Website access</p>
+                <h2 className="mt-1 text-2xl font-bold">{websiteAuthMode === "signup" ? "Create account" : "Sign in"}</h2>
+              </div>
+              <button type="button" onClick={() => setWebsiteAuthOpen(false)} className="rounded-full bg-gray-100 p-2"><XIcon /></button>
+            </div>
+
+            <div className="mb-4 flex rounded-full bg-gray-100 p-1 text-sm font-semibold">
+              <button type="button" onClick={() => { setWebsiteAuthMode("signin"); setWebsiteAuthError(""); setWebsiteAuthMessage("") }} className={`flex-1 rounded-full px-3 py-2 ${websiteAuthMode === "signin" ? "bg-[#111111] text-white" : "text-gray-500"}`}>Sign in</button>
+              <button type="button" onClick={() => { setWebsiteAuthMode("signup"); setWebsiteAuthError(""); setWebsiteAuthMessage("") }} className={`flex-1 rounded-full px-3 py-2 ${websiteAuthMode === "signup" ? "bg-[#111111] text-white" : "text-gray-500"}`}>Sign up</button>
+            </div>
+
+            <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Email address</label>
+            <input autoFocus type="email" required value={websiteEmail} onChange={event => setWebsiteEmail(event.target.value)} placeholder="you@example.com" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#D71920]" />
+            <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Password</label>
+            <input type="password" required value={websitePassword} onChange={event => setWebsitePassword(event.target.value)} placeholder="Enter your password" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#D71920]" />
+            {websiteAuthMode === "signup" && (
+              <>
+                <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Confirm password</label>
+                <input type="password" required value={websiteConfirmPassword} onChange={event => setWebsiteConfirmPassword(event.target.value)} placeholder="Repeat your password" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#D71920]" />
+              </>
+            )}
+            {websiteAuthMessage && <p className="mt-4 rounded-xl bg-green-50 px-3 py-2 text-sm text-green-700">{websiteAuthMessage}</p>}
+            {websiteAuthError && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">{websiteAuthError}</p>}
+            <button type="submit" disabled={websiteAuthLoading} className="mt-5 w-full rounded-xl bg-[#D71920] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60">
+              {websiteAuthLoading ? "Please wait..." : websiteAuthMode === "signup" ? "Create account" : "Sign in"}
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   )
 }
