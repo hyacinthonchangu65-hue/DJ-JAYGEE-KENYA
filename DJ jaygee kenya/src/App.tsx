@@ -528,6 +528,9 @@ export default function App() {
   const [websiteAuthMessage, setWebsiteAuthMessage] = useState("")
   const [websiteAuthUser, setWebsiteAuthUser] = useState<User | null>(null)
   const [websiteAuthChecked, setWebsiteAuthChecked] = useState(false)
+  const [websiteIsAdmin, setWebsiteIsAdmin] = useState(false)
+  const [adminDashboardOpen, setAdminDashboardOpen] = useState(false)
+  const [adminStats, setAdminStats] = useState({ profiles: 0, mixes: 0, videos: 0, events: 0, bookings: 0 })
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
@@ -570,8 +573,17 @@ export default function App() {
       setWebsiteAuthChecked(true)
       return
     }
-    supabase.auth.getUser().then(({ data }) => setWebsiteAuthUser(data.user)).finally(() => setWebsiteAuthChecked(true))
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setWebsiteAuthUser(session?.user ?? null))
+    const loadProfile = async (user: User | null) => {
+      setWebsiteAuthUser(user)
+      if (!user) {
+        setWebsiteIsAdmin(false)
+        return
+      }
+      const { data } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
+      setWebsiteIsAdmin(data?.role === "admin")
+    }
+    supabase.auth.getUser().then(({ data }) => loadProfile(data.user)).finally(() => setWebsiteAuthChecked(true))
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { void loadProfile(session?.user ?? null) })
     return () => listener.subscription.unsubscribe()
   }, [])
 
@@ -659,6 +671,27 @@ export default function App() {
   const handleWebsiteSignOut = async () => {
     if (supabase) await supabase.auth.signOut()
     setWebsiteAuthUser(null)
+    setWebsiteIsAdmin(false)
+    setAdminDashboardOpen(false)
+  }
+
+  const openAdminDashboard = async () => {
+    if (!supabase || !websiteIsAdmin) return
+    const [profiles, mixes, videos, events, bookings] = await Promise.all([
+      supabase.from("profiles").select("id", { count: "exact", head: true }),
+      supabase.from("mixes").select("id", { count: "exact", head: true }),
+      supabase.from("videos").select("id", { count: "exact", head: true }),
+      supabase.from("events").select("id", { count: "exact", head: true }),
+      supabase.from("bookings").select("id", { count: "exact", head: true }),
+    ])
+    setAdminStats({
+      profiles: profiles.count ?? 0,
+      mixes: mixes.count ?? 0,
+      videos: videos.count ?? 0,
+      events: events.count ?? 0,
+      bookings: bookings.count ?? 0,
+    })
+    setAdminDashboardOpen(true)
   }
 
   const navLinks = [
@@ -839,6 +872,14 @@ export default function App() {
               >
                 {websiteAuthUser ? "SIGN OUT" : "SIGN UP / SIGN IN"}
               </button>
+              {websiteIsAdmin && (
+                <button
+                  onClick={() => { void openAdminDashboard() }}
+                  className="hidden lg:block border border-[#D71920] text-[#D71920] text-xs font-semibold px-4 py-2.5 rounded-full hover:bg-[#D71920] hover:text-white transition-all duration-200 tracking-wider"
+                >
+                  ADMIN DASHBOARD
+                </button>
+              )}
               <button
                 onClick={() => setMobileMenuOpen(v => !v)}
                 className="lg:hidden text-white p-1.5"
@@ -894,6 +935,14 @@ export default function App() {
               >
                 {websiteAuthUser ? "ACCOUNT / SIGN OUT" : "SIGN UP / SIGN IN"}
               </button>
+              {websiteIsAdmin && (
+                <button
+                  onClick={() => { void openAdminDashboard(); setMobileMenuOpen(false) }}
+                  className="mt-2 border border-[#D71920] text-[#D71920] text-sm font-semibold px-5 py-3 rounded-full hover:bg-[#D71920] hover:text-white transition-colors w-full tracking-wide"
+                >
+                  ADMIN DASHBOARD
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -1733,6 +1782,40 @@ export default function App() {
               {websiteAuthLoading ? "Please wait..." : websiteAuthMode === "signup" ? "Create account" : "Sign in"}
             </button>
           </form>
+        </div>
+      )}
+
+      {adminDashboardOpen && websiteIsAdmin && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 p-4" onClick={() => setAdminDashboardOpen(false)}>
+          <section onClick={event => event.stopPropagation()} className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D71920]">Admin access</p>
+                <h2 className="mt-1 text-2xl font-bold">DJ Jaygee dashboard</h2>
+                <p className="mt-1 text-sm text-gray-500">Signed in as {websiteAuthUser?.email}</p>
+              </div>
+              <button type="button" onClick={() => setAdminDashboardOpen(false)} className="rounded-full bg-gray-100 p-2"><XIcon /></button>
+            </div>
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
+              {[
+                { label: "Profiles", value: adminStats.profiles },
+                { label: "Mixes", value: adminStats.mixes },
+                { label: "Videos", value: adminStats.videos },
+                { label: "Events", value: adminStats.events },
+                { label: "Bookings", value: adminStats.bookings },
+              ].map(stat => (
+                <div key={stat.label} className="rounded-2xl bg-[#F5F5F5] p-3 text-center">
+                  <p className="text-2xl font-bold text-[#D71920]">{stat.value}</p>
+                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-gray-500">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <button onClick={() => { setAdminDashboardOpen(false); scrollTo("events") }} className="rounded-xl bg-[#111111] px-4 py-3 text-sm font-semibold text-white">Manage events</button>
+              <button onClick={() => { setAdminDashboardOpen(false); scrollTo("contact") }} className="rounded-xl bg-[#111111] px-4 py-3 text-sm font-semibold text-white">View bookings</button>
+              <button onClick={() => setAdminDashboardOpen(false)} className="rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold">Close dashboard</button>
+            </div>
+          </section>
         </div>
       )}
     </div>
