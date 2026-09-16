@@ -2,7 +2,9 @@ import { defineConfig, type HtmlTagDescriptor, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const siteConfiguration: FigmaSiteConfiguration = {}
 
 // Vite config — https://vitejs.dev/config/

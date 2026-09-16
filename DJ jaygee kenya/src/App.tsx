@@ -189,10 +189,12 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
   const [signedIn, setSignedIn] = useState(false)
   const [authUser, setAuthUser] = useState<User | null>(null)
   const [showSignIn, setShowSignIn] = useState(false)
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin")
   const [fanName, setFanName] = useState("")
   const [email, setEmail] = useState("")
-  const [verificationCode, setVerificationCode] = useState("")
-  const [codeSent, setCodeSent] = useState(false)
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState("")
   const [draftMessage, setDraftMessage] = useState("")
   const [playingMix, setPlayingMix] = useState<Mix | null>(null)
@@ -228,35 +230,86 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
     event.preventDefault()
     setAuthError("")
 
-    if (isSupabaseConfigured && supabase) {
-      if (!codeSent) {
-        if (!email.trim()) return
-        const result = await supabase.auth.signInWithOtp({
-          email: email.trim(),
-          options: { shouldCreateUser: true, data: { display_name: fanName || email.split("@")[0] } },
-        })
+    const trimmedEmail = email.trim()
+    const trimmedPassword = password.trim()
+
+    if (!trimmedEmail || !trimmedPassword) {
+      setAuthError("Email and password are required.")
+      return
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setAuthError("Enter a valid email address.")
+      return
+    }
+
+    if (trimmedPassword.length < 6) {
+      setAuthError("Password must be at least 6 characters long.")
+      return
+    }
+
+    if (authMode === "signup") {
+      if (!confirmPassword.trim() || trimmedPassword !== confirmPassword.trim()) {
+        setAuthError("Passwords do not match.")
+        return
+      }
+    }
+
+    setAuthLoading(true)
+
+    try {
+      if (isSupabaseConfigured && supabase) {
+        const result = authMode === "signup"
+          ? await supabase.auth.signUp({
+              email: trimmedEmail,
+              password: trimmedPassword,
+              options: {
+                data: { display_name: fanName || trimmedEmail.split("@")[0] },
+                emailRedirectTo: `${window.location.origin}/`,
+              },
+            })
+          : await supabase.auth.signInWithPassword({
+              email: trimmedEmail,
+              password: trimmedPassword,
+            })
+
         if (result.error) {
           setAuthError(result.error.message)
           return
         }
-        setCodeSent(true)
+
+        if (authMode === "signup" && result.data.user && !result.data.session) {
+          setAuthError("Account created. Check your email to confirm sign in.")
+          setAuthMode("signin")
+          setPassword("")
+          setConfirmPassword("")
+          return
+        }
+
+        setShowSignIn(false)
+        setAuthMode("signin")
+        setPassword("")
+        setConfirmPassword("")
+        setFanName("")
+        setEmail("")
         return
       }
 
-      const result = await supabase.auth.verifyOtp({ email: email.trim(), token: verificationCode.trim(), type: "email" })
-      if (result.error) {
-        setAuthError(result.error.message)
+      if (!fanName.trim()) {
+        setAuthError("Please enter your name to continue.")
         return
       }
+
+      setSignedIn(true)
       setShowSignIn(false)
-      setCodeSent(false)
-      setVerificationCode("")
-      return
+      setAuthMode("signin")
+      setPassword("")
+      setConfirmPassword("")
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : "Unable to complete sign in.")
+    } finally {
+      setAuthLoading(false)
     }
-
-    if (!fanName.trim()) return
-    setSignedIn(true)
-    setShowSignIn(false)
   }
 
   const handleSignOut = async () => {
@@ -298,7 +351,13 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
               </button>
             )}
             <button
-              onClick={() => isUserSignedIn ? handleSignOut() : setShowSignIn(true)}
+              onClick={() => {
+                setAuthMode("signin")
+                setAuthError("")
+                setPassword("")
+                setConfirmPassword("")
+                setShowSignIn(true)
+              }}
               className="rounded-full bg-[#A41E14] px-3 py-2 text-[10px] font-semibold tracking-wide"
             >
               {isUserSignedIn ? "SIGN OUT" : "SIGN IN"}
@@ -354,7 +413,17 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
         )}
 
         {activeTab === "profile" && (
-          <div className="space-y-5"><div className="rounded-3xl bg-[#111111] p-6 text-white"><div className="flex items-center gap-4"><img src={logoImg} alt="DJ JayGee Kenya" className="h-16 w-16 rounded-2xl object-cover" /><div><p className="text-xs uppercase tracking-widest text-[#C96B6B]">Official profile</p><h1 className="mt-1 text-2xl font-bold">{authUser?.user_metadata?.display_name || fanName || "DJ JayGee Fan"}</h1><p className="mt-1 text-sm text-white/55">{isUserSignedIn ? "Connected to DJ JayGee" : "Explore as a guest"}</p></div></div><button onClick={() => isUserSignedIn ? handleSignOut() : setShowSignIn(true)} className="mt-6 w-full rounded-xl bg-[#A41E14] px-4 py-3 text-sm font-semibold">{isUserSignedIn ? "Sign out" : "Sign in to unlock your profile"}</button></div><div className="grid grid-cols-2 gap-3">{[{ label: "Saved mixes", value: "0" }, { label: "Events", value: "6+" }, { label: "Following", value: "DJ JayGee" }, { label: "Bookings", value: "Open" }].map(item => <div key={item.label} className="rounded-2xl bg-white p-4 shadow-sm"><p className="text-lg font-bold">{item.value}</p><p className="mt-1 text-xs text-gray-500">{item.label}</p></div>)}</div><button onClick={() => setActiveTab("conversations")} className="flex w-full items-center justify-between rounded-2xl bg-white px-5 py-4 text-sm font-semibold shadow-sm">Fan conversations <ChevronDownIcon /></button><button onClick={() => setActiveTab("booking")} className="flex w-full items-center justify-between rounded-2xl bg-white px-5 py-4 text-sm font-semibold shadow-sm">Book DJ JayGee <ChevronDownIcon /></button></div>
+          <div className="space-y-5"><div className="rounded-3xl bg-[#111111] p-6 text-white"><div className="flex items-center gap-4"><img src={logoImg} alt="DJ JayGee Kenya" className="h-16 w-16 rounded-2xl object-cover" /><div><p className="text-xs uppercase tracking-widest text-[#C96B6B]">Official profile</p><h1 className="mt-1 text-2xl font-bold">{authUser?.user_metadata?.display_name || fanName || "DJ JayGee Fan"}</h1><p className="mt-1 text-sm text-white/55">{isUserSignedIn ? "Connected to DJ JayGee" : "Explore as a guest"}</p></div></div><button onClick={() => {
+            if (isUserSignedIn) {
+              void handleSignOut()
+              return
+            }
+            setAuthMode("signin")
+            setAuthError("")
+            setPassword("")
+            setConfirmPassword("")
+            setShowSignIn(true)
+          }} className="mt-6 w-full rounded-xl bg-[#A41E14] px-4 py-3 text-sm font-semibold">{isUserSignedIn ? "Sign out" : "Sign in with email"}</button></div><div className="grid grid-cols-2 gap-3">{[{ label: "Saved mixes", value: "0" }, { label: "Events", value: "6+" }, { label: "Following", value: "DJ JayGee" }, { label: "Bookings", value: "Open" }].map(item => <div key={item.label} className="rounded-2xl bg-white p-4 shadow-sm"><p className="text-lg font-bold">{item.value}</p><p className="mt-1 text-xs text-gray-500">{item.label}</p></div>)}</div><button onClick={() => setActiveTab("conversations")} className="flex w-full items-center justify-between rounded-2xl bg-white px-5 py-4 text-sm font-semibold shadow-sm">Fan conversations <ChevronDownIcon /></button><button onClick={() => setActiveTab("booking")} className="flex w-full items-center justify-between rounded-2xl bg-white px-5 py-4 text-sm font-semibold shadow-sm">Book DJ JayGee <ChevronDownIcon /></button></div>
         )}
 
         {activeTab === "fans" && (
@@ -395,11 +464,66 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
         <div className="mx-auto flex max-w-xl justify-around">
           {navItems.map(item => <button key={item.id} onClick={() => setActiveTab(item.id)} className={`flex min-w-[4.5rem] flex-col items-center gap-1 px-3 py-2 text-[10px] font-semibold ${activeTab === item.id ? "text-[#A41E14]" : "text-gray-400"}`}>{item.icon}<span>{item.label}</span></button>)}
         </div>
-      </nav>
-
-      {showSignIn && (
+      </nav>      {showSignIn && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center" onClick={() => setShowSignIn(false)}>
-          <form onSubmit={handleSignIn} onClick={event => event.stopPropagation()} className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"><div className="mb-5 flex items-center justify-between"><div><p className="text-xs font-semibold uppercase tracking-widest text-[#A41E14]">Fan access</p><h2 className="mt-1 text-2xl font-bold">Email sign in</h2></div><button type="button" onClick={() => { setShowSignIn(false); setCodeSent(false) }} className="rounded-full bg-[#F5F5F5] p-2"><XIcon /></button></div>{isSupabaseConfigured ? <><label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Email address</label><input autoFocus type="email" required value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" disabled={codeSent} className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14] disabled:bg-gray-100" />{codeSent ? <><label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Verification code</label><input type="text" inputMode="numeric" autoComplete="one-time-code" required minLength={6} maxLength={6} value={verificationCode} onChange={event => setVerificationCode(event.target.value.replace(/\D/g, ""))} placeholder="Enter the 6-digit code" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-center text-lg tracking-[0.35em] outline-none focus:border-[#A41E14]" /></> : <><label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Your name <span className="font-normal normal-case">(optional)</span></label><input value={fanName} onChange={event => setFanName(event.target.value)} placeholder="DJ Jaygee fan" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /></>}</> : <><label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Your name</label><input autoFocus required value={fanName} onChange={event => setFanName(event.target.value)} placeholder="Enter your name" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /></>}{authError && <p className="mt-3 text-xs text-red-600">{authError}</p>}<button type="submit" className="mt-4 w-full rounded-xl bg-[#A41E14] px-4 py-3 text-sm font-semibold text-white">{isSupabaseConfigured ? codeSent ? "Verify code" : "Send code" : "Continue"}</button>{codeSent && <button type="button" onClick={() => { setCodeSent(false); setVerificationCode(""); setAuthError("") }} className="mt-3 w-full text-center text-xs font-semibold text-[#A41E14]">Use a different email</button>}</form>
+          <form onSubmit={handleSignIn} onClick={event => event.stopPropagation()} className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-[#A41E14]">Fan access</p>
+                <h2 className="mt-1 text-2xl font-bold">{authMode === "signin" ? "Sign in" : "Create account"}</h2>
+              </div>
+              <button type="button" onClick={() => { setShowSignIn(false); setAuthError(""); setPassword(""); setConfirmPassword("") }} className="rounded-full bg-[#F5F5F5] p-2"><XIcon /></button>
+            </div>
+
+            <div className="mb-4 flex rounded-full bg-[#F5F5F5] p-1 text-sm font-semibold">
+              <button type="button" onClick={() => { setAuthMode("signin"); setAuthError("") }} className={`flex-1 rounded-full px-3 py-2 ${authMode === "signin" ? "bg-[#111111] text-white" : "text-gray-500"}`}>
+                Sign in
+              </button>
+              <button type="button" onClick={() => { setAuthMode("signup"); setAuthError("") }} className={`flex-1 rounded-full px-3 py-2 ${authMode === "signup" ? "bg-[#111111] text-white" : "text-gray-500"}`}>
+                Sign up
+              </button>
+            </div>
+
+            {isSupabaseConfigured && (
+              <>
+                <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Your name <span className="font-normal normal-case">(optional)</span></label>
+                <input value={fanName} onChange={event => setFanName(event.target.value)} placeholder="DJ Jaygee fan" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" />
+              </>
+            )}
+
+            {!isSupabaseConfigured && (
+              <>
+                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Your name</label>
+                <input autoFocus required value={fanName} onChange={event => setFanName(event.target.value)} placeholder="Your name" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" />
+              </>
+            )}
+
+            <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Email address</label>
+            <input autoFocus={isSupabaseConfigured ? false : true} type="email" required value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" />
+
+            <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Password</label>
+            <input type="password" required value={password} onChange={event => setPassword(event.target.value)} placeholder="Enter your password" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" />
+
+            {authMode === "signup" && (
+              <>
+                <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Confirm password</label>
+                <input type="password" required value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} placeholder="Repeat your password" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" />
+              </>
+            )}
+
+            <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
+              <span>{isSupabaseConfigured ? "Secure email access" : "Guest mode"}</span>
+              <button type="button" onClick={() => setAuthMode(authMode === "signin" ? "signup" : "signin")} className="font-semibold text-[#A41E14]">
+                {authMode === "signin" ? "Need an account?" : "Already have an account?"}
+              </button>
+            </div>
+
+            {authError && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">{authError}</p>}
+
+            <button type="submit" disabled={authLoading} className="mt-5 w-full rounded-xl bg-[#A41E14] px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-[#A41E14]/70">
+              {authLoading ? "Please wait..." : authMode === "signin" ? "Sign in" : "Create account"}
+            </button>
+          </form>
         </div>
       )}
     </div>
