@@ -484,14 +484,20 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
               </button>
             </div>
 
-            {isSupabaseConfigured && (
+            {authMode === "signup" && (
               <>
                 <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Your name <span className="font-normal normal-case">(optional)</span></label>
-                <input value={fanName} onChange={event => setFanName(event.target.value)} placeholder="DJ Jaygee fan" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" />
+                <input
+                  autoFocus={authMode === "signup" && isSupabaseConfigured}
+                  value={fanName}
+                  onChange={event => setFanName(event.target.value)}
+                  placeholder="DJ Jaygee fan"
+                  className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]"
+                />
               </>
             )}
 
-            {!isSupabaseConfigured && (
+            {!isSupabaseConfigured && authMode === "signin" && (
               <>
                 <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Your name</label>
                 <input autoFocus required value={fanName} onChange={event => setFanName(event.target.value)} placeholder="Your name" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" />
@@ -499,7 +505,7 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
             )}
 
             <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Email address</label>
-            <input autoFocus={isSupabaseConfigured ? false : true} type="email" required value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" />
+            <input autoFocus={authMode === "signin" || !isSupabaseConfigured} type="email" required value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" />
 
             <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Password</label>
             <input type="password" required value={password} onChange={event => setPassword(event.target.value)} placeholder="Enter your password" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" />
