@@ -182,6 +182,8 @@ const eventTypes = [
   { label: "Special Events", img: U.equipment },
 ]
 
+const designatedAdminEmail = "hyacinthonchangu@gmail.com"
+
 type AppTab = "home" | "music" | "videos" | "events" | "profile" | "fans" | "conversations" | "booking"
 
 function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isInstalled: boolean }) {
@@ -580,7 +582,8 @@ export default function App() {
         return
       }
       const { data } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
-      setWebsiteIsAdmin(data?.role === "admin")
+      const isDesignatedAdmin = user.email?.toLowerCase() === designatedAdminEmail
+      setWebsiteIsAdmin(data?.role === "admin" || isDesignatedAdmin)
     }
     supabase.auth.getUser().then(({ data }) => loadProfile(data.user)).finally(() => setWebsiteAuthChecked(true))
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { void loadProfile(session?.user ?? null) })
