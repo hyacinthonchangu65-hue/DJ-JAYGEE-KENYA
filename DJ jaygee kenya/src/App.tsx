@@ -295,16 +295,7 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
         return
       }
 
-      if (!fanName.trim()) {
-        setAuthError("Please enter your name to continue.")
-        return
-      }
-
-      setSignedIn(true)
-      setShowSignIn(false)
-      setAuthMode("signin")
-      setPassword("")
-      setConfirmPassword("")
+      setAuthError("Email authentication is not configured. Please try again after the app connection is restored.")
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : "Unable to complete sign in.")
     } finally {
@@ -497,15 +488,8 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
               </>
             )}
 
-            {!isSupabaseConfigured && authMode === "signin" && (
-              <>
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Your name</label>
-                <input autoFocus required value={fanName} onChange={event => setFanName(event.target.value)} placeholder="Your name" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" />
-              </>
-            )}
-
             <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Email address</label>
-            <input autoFocus={authMode === "signin" || !isSupabaseConfigured} type="email" required value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" />
+            <input autoFocus={authMode === "signin"} type="email" required value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" />
 
             <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Password</label>
             <input type="password" required value={password} onChange={event => setPassword(event.target.value)} placeholder="Enter your password" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#A41E14]" />
@@ -518,7 +502,7 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
             )}
 
             <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
-              <span>{isSupabaseConfigured ? "Secure email access" : "Guest mode"}</span>
+              <span>Secure email access</span>
               <button type="button" onClick={() => setAuthMode(authMode === "signin" ? "signup" : "signin")} className="font-semibold text-[#A41E14]">
                 {authMode === "signin" ? "Need an account?" : "Already have an account?"}
               </button>

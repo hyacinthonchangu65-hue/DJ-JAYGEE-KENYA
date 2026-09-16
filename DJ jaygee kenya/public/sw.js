@@ -1,4 +1,4 @@
-const CACHE_NAME = "dj-jaygee-kenya-v3"
+const CACHE_NAME = "dj-jaygee-kenya-v4"
 
 self.addEventListener("install", () => self.skipWaiting())
 
