@@ -510,6 +510,7 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
     { id: "live", label: "Live", icon: <HeadphonesIcon /> },
     { id: "requests", label: "Request", icon: <MusicIcon /> },
     { id: "events", label: "Events", icon: <CalendarIcon /> },
+    { id: "videos", label: "YouTube", icon: <YouTubeIcon /> },
     { id: "nightlife", label: "More", icon: <UsersIcon /> },
     { id: "profile", label: "Profile", icon: <ProfileIcon /> },
   ]
