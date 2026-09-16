@@ -784,6 +784,7 @@ export default function App() {
     { label: "Home", id: "home" },
     { label: "About", id: "about" },
     { label: "Services", id: "services" },
+    { label: "YouTube", id: "youtube" },
     { label: "Events", id: "events" },
     { label: "Gallery", id: "gallery" },
     { label: "Contact", id: "contact" },
@@ -1129,6 +1130,43 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {/* ── YOUTUBE ────────────────────────────────────────────────────────── */}
+      <section id="youtube" className="py-20 lg:py-28 bg-[#111111]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between mb-12">
+            <div>
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-8 h-px bg-[#D71920]" />
+                <span className="text-[#D71920] text-xs font-semibold tracking-[0.2em] uppercase">Watch now</span>
+              </div>
+              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif" }} className="text-4xl sm:text-5xl font-bold text-white">DJ JayGee TV</h2>
+              <p className="text-gray-400 mt-4 max-w-xl leading-relaxed">Watch live performances, behind-the-scenes moments, and event energy on the official DJ Jaygee Kenya YouTube channel.</p>
+            </div>
+            <a href="https://youtube.com/@djaygeekenya-c6q7i" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#D71920] px-5 py-3 text-xs font-semibold tracking-wide text-white hover:bg-red-700">
+              <YouTubeIcon className="h-5 w-5" />
+              Open YouTube channel
+            </a>
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {demoVideos.map(video => (
+              <article key={video.id} className="overflow-hidden rounded-2xl bg-[#242424] shadow-xl">
+                <a href={video.url} target="_blank" rel="noreferrer" className="group relative block aspect-video overflow-hidden">
+                  <img src={video.thumbnail} alt={video.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/45" />
+                  <span className="absolute inset-0 flex items-center justify-center"><span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#D71920] text-white shadow-xl">▶</span></span>
+                </a>
+                <div className="p-5">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-[#D71920]">{video.category}</p>
+                  <h3 className="mt-2 text-xl font-bold text-white">{video.title}</h3>
+                  <p className="mt-2 text-sm text-gray-400">{video.views} views · {video.duration}</p>
+                  <a href={video.url} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-[#D71920]">Watch on YouTube <ArrowIcon /></a>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ── ABOUT ──────────────────────────────────────────────────────────── */}
       <section id="about" className="py-20 lg:py-28 bg-white">
