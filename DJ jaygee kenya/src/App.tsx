@@ -352,7 +352,7 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
             )}
             <button
               onClick={() => {
-                setAuthMode("signin")
+                setAuthMode("signup")
                 setAuthError("")
                 setPassword("")
                 setConfirmPassword("")
@@ -418,7 +418,7 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
               void handleSignOut()
               return
             }
-            setAuthMode("signin")
+            setAuthMode("signup")
             setAuthError("")
             setPassword("")
             setConfirmPassword("")
