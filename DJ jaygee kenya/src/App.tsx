@@ -527,6 +527,7 @@ export default function App() {
   const [websiteAuthError, setWebsiteAuthError] = useState("")
   const [websiteAuthMessage, setWebsiteAuthMessage] = useState("")
   const [websiteAuthUser, setWebsiteAuthUser] = useState<User | null>(null)
+  const [websiteAuthChecked, setWebsiteAuthChecked] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
@@ -565,8 +566,11 @@ export default function App() {
   }, [lightbox])
 
   useEffect(() => {
-    if (!supabase) return
-    supabase.auth.getUser().then(({ data }) => setWebsiteAuthUser(data.user))
+    if (!supabase) {
+      setWebsiteAuthChecked(true)
+      return
+    }
+    supabase.auth.getUser().then(({ data }) => setWebsiteAuthUser(data.user)).finally(() => setWebsiteAuthChecked(true))
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setWebsiteAuthUser(session?.user ?? null))
     return () => listener.subscription.unsubscribe()
   }, [])
@@ -716,6 +720,47 @@ export default function App() {
 
   if (standaloneMode) {
     return <StandaloneApp onInstall={handleInstall} isInstalled={isInstalled} />
+  }
+
+  if (!websiteAuthChecked || !websiteAuthUser) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#111111] px-4 py-10 text-[#111111]">
+        <form onSubmit={handleWebsiteAuth} className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl">
+          <div className="mb-6 text-center">
+            <img src={logoImg} alt="DJ Jaygee Kenya" className="mx-auto h-16 w-16 rounded-2xl object-cover" />
+            <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-[#D71920]">DJ Jaygee Kenya</p>
+            <h1 className="mt-2 text-3xl font-bold">Fan access required</h1>
+            <p className="mt-2 text-sm leading-relaxed text-gray-500">Create an account or sign in to access the website.</p>
+          </div>
+
+          {!websiteAuthChecked ? (
+            <p className="rounded-xl bg-gray-100 px-4 py-3 text-center text-sm text-gray-500">Checking your session...</p>
+          ) : (
+            <>
+              <div className="mb-4 flex rounded-full bg-gray-100 p-1 text-sm font-semibold">
+                <button type="button" onClick={() => { setWebsiteAuthMode("signin"); setWebsiteAuthError(""); setWebsiteAuthMessage("") }} className={`flex-1 rounded-full px-3 py-2 ${websiteAuthMode === "signin" ? "bg-[#111111] text-white" : "text-gray-500"}`}>Sign in</button>
+                <button type="button" onClick={() => { setWebsiteAuthMode("signup"); setWebsiteAuthError(""); setWebsiteAuthMessage("") }} className={`flex-1 rounded-full px-3 py-2 ${websiteAuthMode === "signup" ? "bg-[#111111] text-white" : "text-gray-500"}`}>Sign up</button>
+              </div>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500">Email address</label>
+              <input autoFocus type="email" required value={websiteEmail} onChange={event => setWebsiteEmail(event.target.value)} placeholder="you@example.com" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#D71920]" />
+              <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Password</label>
+              <input type="password" required value={websitePassword} onChange={event => setWebsitePassword(event.target.value)} placeholder="Enter your password" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#D71920]" />
+              {websiteAuthMode === "signup" && (
+                <>
+                  <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-gray-500">Confirm password</label>
+                  <input type="password" required value={websiteConfirmPassword} onChange={event => setWebsiteConfirmPassword(event.target.value)} placeholder="Repeat your password" className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#D71920]" />
+                </>
+              )}
+              {websiteAuthMessage && <p className="mt-4 rounded-xl bg-green-50 px-3 py-2 text-sm text-green-700">{websiteAuthMessage}</p>}
+              {websiteAuthError && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">{websiteAuthError}</p>}
+              <button type="submit" disabled={websiteAuthLoading} className="mt-5 w-full rounded-xl bg-[#D71920] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60">
+                {websiteAuthLoading ? "Please wait..." : websiteAuthMode === "signup" ? "Create account" : "Sign in"}
+              </button>
+            </>
+          )}
+        </form>
+      </div>
+    )
   }
 
   return (
