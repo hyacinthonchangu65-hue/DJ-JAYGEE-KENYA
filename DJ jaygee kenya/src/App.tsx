@@ -6,7 +6,7 @@ import djFullBodyImg from "@/imports/WhatsApp_Image_2026-09-05_at_10.21.22_AM.jp
 import logoImg from "@/imports/WhatsApp_Image_2026-09-04_at_6.45.26_PM.jpeg"
 import { isSupabaseConfigured, supabase } from "@/lib/supabase"
 import { demoEvents, demoMixes, demoVideos, type Mix } from "@/lib/content"
-import { createAnonymousBooking, createCommunityMessage, getCommunityMessages, getPublishedMixes, getPublishedVideos, getUpcomingEvents } from "@/lib/api"
+import { createAnonymousBooking, createBooking, createCommunityMessage, getCommunityMessages, getPublishedMixes, getPublishedVideos, getUpcomingEvents } from "@/lib/api"
 
 const U = {
   wedding:    "https://images.unsplash.com/photo-1761110787206-2cc164e4913c?w=900&h=650&fit=crop&auto=format",
@@ -200,6 +200,9 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
   const [authError, setAuthError] = useState("")
   const [draftMessage, setDraftMessage] = useState("")
   const [messageError, setMessageError] = useState("")
+  const [bookingData, setBookingData] = useState({ name: "", phone: "", email: "", eventType: "", date: "", location: "", guests: "", message: "" })
+  const [bookingError, setBookingError] = useState("")
+  const [bookingLoading, setBookingLoading] = useState(false)
   const [playingMix, setPlayingMix] = useState<Mix | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [messages, setMessages] = useState([
@@ -345,6 +348,44 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
     setDraftMessage("")
   }
 
+  const submitBooking = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setBookingError("")
+    setBookingLoading(true)
+    try {
+      const booking = {
+        customer_name: bookingData.name.trim(),
+        phone: bookingData.phone.trim(),
+        email: bookingData.email.trim() || null,
+        event_type: bookingData.eventType,
+        event_date: bookingData.date || null,
+        venue: bookingData.location.trim() || null,
+        guests: bookingData.guests ? Number(bookingData.guests) : null,
+        message: bookingData.message.trim() || null,
+      }
+      if (authUser) await createBooking(booking)
+      else await createAnonymousBooking(booking)
+
+      const whatsappMessage = [
+        "Hello DJ Jaygee Kenya, I would like to request a booking.",
+        "",
+        `Full Name: ${bookingData.name || "Not provided"}`,
+        `Phone Number: ${bookingData.phone || "Not provided"}`,
+        `Email Address: ${bookingData.email || "Not provided"}`,
+        `Event Type: ${bookingData.eventType || "Not provided"}`,
+        `Event Date: ${bookingData.date || "Not provided"}`,
+        `Event Location: ${bookingData.location || "Not provided"}`,
+        `Number of Guests: ${bookingData.guests || "Not provided"}`,
+        `Additional Message: ${bookingData.message || "Not provided"}`,
+      ].join("\n")
+      window.location.assign(`https://wa.me/254703372346?text=${encodeURIComponent(whatsappMessage)}`)
+    } catch (error) {
+      setBookingError(error instanceof Error ? error.message : "Unable to save your booking.")
+    } finally {
+      setBookingLoading(false)
+    }
+  }
+
   const navItems: { id: AppTab; label: string; icon: React.ReactNode }[] = [
     { id: "home", label: "Home", icon: <HomeIcon /> },
     { id: "music", label: "Music", icon: <MusicIcon /> },
@@ -475,7 +516,21 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
         {activeTab === "booking" && (
           <div className="space-y-5">
             <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Bookings</p><h1 className="mt-1 text-3xl font-bold">Make it memorable</h1><p className="mt-2 text-sm leading-relaxed text-gray-500">Tell DJ Jaygee about your event and continue the conversation on WhatsApp.</p></div>
-            <div className="rounded-2xl bg-[#111111] p-6 text-white shadow-xl"><h2 className="text-2xl font-bold">DJ Jaygee Kenya</h2><p className="mt-2 text-sm leading-relaxed text-white/65">Professional sound for weddings, corporate events, conferences, ceremonies, and private celebrations.</p><a href="https://wa.me/254703372346?text=Hello%20DJ%20Jaygee%20Kenya%2C%20I%20would%20like%20to%20make%20a%20booking." className="mt-6 flex w-full items-center justify-center rounded-xl bg-[#A41E14] px-4 py-4 text-sm font-semibold">Continue on WhatsApp</a><a href="tel:+254703372346" className="mt-3 flex w-full items-center justify-center rounded-xl border border-white/20 px-4 py-4 text-sm font-semibold">Call 0703 372 346</a></div>
+            <form onSubmit={submitBooking} className="space-y-4 rounded-2xl bg-white p-5 shadow-sm">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <label className="block text-sm font-semibold">Full Name<input required value={bookingData.name} onChange={event => setBookingData(data => ({ ...data, name: event.target.value }))} className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-normal outline-none focus:border-[#A41E14]" /></label>
+                <label className="block text-sm font-semibold">Phone Number<input required type="tel" value={bookingData.phone} onChange={event => setBookingData(data => ({ ...data, phone: event.target.value }))} className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-normal outline-none focus:border-[#A41E14]" /></label>
+                <label className="block text-sm font-semibold">Email Address<input type="email" value={bookingData.email} onChange={event => setBookingData(data => ({ ...data, email: event.target.value }))} className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-normal outline-none focus:border-[#A41E14]" /></label>
+                <label className="block text-sm font-semibold">Event Type<select required value={bookingData.eventType} onChange={event => setBookingData(data => ({ ...data, eventType: event.target.value }))} className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-normal outline-none focus:border-[#A41E14]"><option value="">Select event type</option>{eventTypes.map(eventType => <option key={eventType.label} value={eventType.label}>{eventType.label}</option>)}</select></label>
+                <label className="block text-sm font-semibold">Event Date<input type="date" value={bookingData.date} onChange={event => setBookingData(data => ({ ...data, date: event.target.value }))} className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-normal outline-none focus:border-[#A41E14]" /></label>
+                <label className="block text-sm font-semibold">Event Location<input value={bookingData.location} onChange={event => setBookingData(data => ({ ...data, location: event.target.value }))} className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-normal outline-none focus:border-[#A41E14]" /></label>
+              </div>
+              <label className="block text-sm font-semibold">Number of Guests<input type="number" min="1" value={bookingData.guests} onChange={event => setBookingData(data => ({ ...data, guests: event.target.value }))} className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-normal outline-none focus:border-[#A41E14]" /></label>
+              <label className="block text-sm font-semibold">Additional Message<textarea rows={4} value={bookingData.message} onChange={event => setBookingData(data => ({ ...data, message: event.target.value }))} className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-normal outline-none focus:border-[#A41E14]" /></label>
+              {bookingError && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">{bookingError}</p>}
+              <button type="submit" disabled={bookingLoading} className="w-full rounded-xl bg-[#A41E14] px-4 py-4 text-sm font-semibold text-white disabled:opacity-60">{bookingLoading ? "Saving booking..." : "Continue on WhatsApp"}</button>
+            </form>
+            <div className="rounded-2xl bg-[#111111] p-6 text-white shadow-xl"><h2 className="text-2xl font-bold">DJ Jaygee Kenya</h2><p className="mt-2 text-sm leading-relaxed text-white/65">Professional sound for weddings, corporate events, conferences, ceremonies, and private celebrations.</p><a href="tel:+254703372346" className="mt-6 flex w-full items-center justify-center rounded-xl border border-white/20 px-4 py-4 text-sm font-semibold">Call 0703 372 346</a></div>
             <button onClick={() => setActiveTab("home")} className="mx-auto flex items-center gap-2 text-sm font-semibold text-[#A41E14]">Back to home <ChevronDownIcon /></button>
           </div>
         )}
