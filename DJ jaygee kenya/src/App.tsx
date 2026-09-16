@@ -6,7 +6,7 @@ import djFullBodyImg from "@/imports/WhatsApp_Image_2026-09-05_at_10.21.22_AM.jp
 import logoImg from "@/imports/WhatsApp_Image_2026-09-04_at_6.45.26_PM.jpeg"
 import { isSupabaseConfigured, supabase } from "@/lib/supabase"
 import { demoEvents, demoMixes, demoVideos, type Mix } from "@/lib/content"
-import { createAnonymousBooking, getPublishedMixes, getPublishedVideos, getUpcomingEvents } from "@/lib/api"
+import { createAnonymousBooking, createCommunityMessage, getCommunityMessages, getPublishedMixes, getPublishedVideos, getUpcomingEvents } from "@/lib/api"
 
 const U = {
   wedding:    "https://images.unsplash.com/photo-1761110787206-2cc164e4913c?w=900&h=650&fit=crop&auto=format",
@@ -199,6 +199,7 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState("")
   const [draftMessage, setDraftMessage] = useState("")
+  const [messageError, setMessageError] = useState("")
   const [playingMix, setPlayingMix] = useState<Mix | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [messages, setMessages] = useState([
@@ -215,6 +216,20 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
       if (liveEvents.length) setEvents(liveEvents.map(event => ({ id: event.id, title: event.title, date: new Date(`${event.event_date}T00:00:00`).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase(), venue: event.venue || "Venue TBA", location: event.location || "Kenya", artwork: event.artwork_url || demoEvents[0].artwork, description: event.description || "DJ JayGee live experience." })))
     }).catch(error => console.error("Unable to load live content:", error))
   }, [])
+
+  useEffect(() => {
+    getCommunityMessages()
+      .then(savedMessages => {
+        if (savedMessages.length) {
+          setMessages(savedMessages.map(message => ({
+            from: message.display_name,
+            text: message.message,
+            mine: message.user_id === authUser?.id,
+          })))
+        }
+      })
+      .catch(error => console.error("Unable to load community messages:", error))
+  }, [authUser?.id])
 
   useEffect(() => {
     if (!supabase) return
@@ -311,10 +326,22 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
     setAuthUser(null)
   }
 
-  const sendMessage = (event: React.FormEvent) => {
+  const sendMessage = async (event: React.FormEvent) => {
     event.preventDefault()
-    if (!draftMessage.trim()) return
-    setMessages(current => [...current, { from: "You", text: draftMessage.trim(), mine: true }])
+    setMessageError("")
+    const text = draftMessage.trim()
+    if (!text || !authUser) return
+    try {
+      const savedMessage = await createCommunityMessage({
+        userId: authUser.id,
+        displayName: authUser.user_metadata?.display_name || authUser.email?.split("@")[0] || "Fan",
+        text,
+      })
+      setMessages(current => [...current, { from: savedMessage.display_name, text: savedMessage.message, mine: true }])
+    } catch (error) {
+      setMessageError(error instanceof Error ? error.message : "Unable to save your message.")
+      return
+    }
     setDraftMessage("")
   }
 
@@ -440,6 +467,7 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
               {messages.map((message, index) => <div key={index} className={`flex ${message.mine ? "justify-end" : "justify-start"}`}><div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${message.mine ? "rounded-br-md bg-[#A41E14] text-white" : "rounded-bl-md bg-[#F5F5F5] text-[#111111]"}`}><span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide opacity-60">{message.from}</span>{message.text}</div></div>)}
             </div>
             <form onSubmit={sendMessage} className="mt-4 flex gap-2"><input value={draftMessage} onChange={event => setDraftMessage(event.target.value)} placeholder={isUserSignedIn ? "Write a message..." : "Sign in to chat"} disabled={!isUserSignedIn} className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#A41E14]" /><button type="submit" disabled={!isUserSignedIn} className="rounded-xl bg-[#111111] px-4 text-sm font-semibold text-white disabled:opacity-40">Send</button></form>
+            {messageError && <p className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600">{messageError}</p>}
             {!isUserSignedIn && <button onClick={() => setShowSignIn(true)} className="mt-3 text-center text-xs font-semibold text-[#A41E14]">Sign in to join the conversation</button>}
           </div>
         )}
