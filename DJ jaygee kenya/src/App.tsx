@@ -7,6 +7,8 @@ import logoImg from "@/imports/WhatsApp_Image_2026-09-04_at_6.45.26_PM.jpeg"
 import { isSupabaseConfigured, supabase } from "@/lib/supabase"
 import { demoEvents, demoMixes, demoVideos, type Mix } from "@/lib/content"
 import { createAnonymousBooking, createBooking, createCommunityMessage, getCommunityMessages, getPublishedMixes, getPublishedVideos, getUpcomingEvents } from "@/lib/api"
+import { advanceLiveRequest, createLiveRequest as createLiveRequestRecord } from "@/lib/nightlife"
+import { NightlifeHub } from "@/components/NightlifeHub"
 
 const U = {
   wedding:    "https://images.unsplash.com/photo-1761110787206-2cc164e4913c?w=900&h=650&fit=crop&auto=format",
@@ -198,7 +200,25 @@ function getYouTubeEmbedUrl(url: string) {
   }
 }
 
-type AppTab = "home" | "music" | "videos" | "events" | "profile" | "fans" | "conversations" | "booking"
+type AppTab = "home" | "music" | "videos" | "events" | "profile" | "fans" | "conversations" | "booking" | "live" | "requests" | "nightlife"
+
+type LiveRequest = {
+  id: string
+  song: string
+  artist: string
+  message: string
+  tier: "Free" | "Standard" | "Priority" | "VIP"
+  amount: number
+  status: "Pending" | "Accepted" | "Playing" | "Played" | "Declined"
+  submittedAt: string
+}
+
+const requestSongs = [
+  { song: "Unavailable", artist: "Davido", artwork: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=300&h=300&fit=crop&auto=format" },
+  { song: "Tshwala Bam", artist: "TitoM & Yuppe", artwork: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=300&h=300&fit=crop&auto=format" },
+  { song: "Odogwu", artist: "Burna Boy", artwork: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=300&h=300&fit=crop&auto=format" },
+  { song: "Amapiano Mix", artist: "DJ JayGee", artwork: "https://images.unsplash.com/photo-1571266028243-d220c9c3b2b2?w=300&h=300&fit=crop&auto=format" },
+]
 
 function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isInstalled: boolean }) {
   const [activeTab, setActiveTab] = useState<AppTab>("home")
@@ -226,6 +246,89 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
   const [mixes, setMixes] = useState(demoMixes)
   const [videos, setVideos] = useState(demoVideos)
   const [events, setEvents] = useState(demoEvents)
+  const [requests, setRequests] = useState<LiveRequest[]>([
+    { id: "REQ-184", song: "Unavailable", artist: "Davido", message: "For the whole table tonight", tier: "Priority", amount: 300, status: "Playing", submittedAt: "Now" },
+    { id: "REQ-183", song: "Tshwala Bam", artist: "TitoM & Yuppe", message: "", tier: "Standard", amount: 150, status: "Accepted", submittedAt: "2 min ago" },
+    { id: "REQ-182", song: "Odogwu", artist: "Burna Boy", message: "Birthday dedication for Brian", tier: "VIP", amount: 500, status: "Pending", submittedAt: "4 min ago" },
+  ])
+  const [requestSong, setRequestSong] = useState(requestSongs[0].song)
+  const [requestMessage, setRequestMessage] = useState("")
+  const [requestTier, setRequestTier] = useState<LiveRequest["tier"]>("Standard")
+  const [requestSubmitted, setRequestSubmitted] = useState<LiveRequest | null>(null)
+  const [djConsoleOpen, setDjConsoleOpen] = useState(false)
+  const [requestError, setRequestError] = useState("")
+
+  const requestPrices: Record<LiveRequest["tier"], number> = { Free: 0, Standard: 150, Priority: 300, VIP: 500 }
+
+  const submitLiveRequest = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setRequestError("")
+    const selectedSong = requestSongs.find(song => song.song === requestSong) || requestSongs[0]
+    const query = new URLSearchParams(window.location.search)
+    const sessionId = query.get("session")
+    const venueId = query.get("venue")
+    const tableId = query.get("table")
+
+    if (isSupabaseConfigured && supabase && sessionId && venueId) {
+      try {
+        const savedRequest = await createLiveRequestRecord({
+          sessionId,
+          venueId,
+          tableId,
+          songTitle: selectedSong.song,
+          artist: selectedSong.artist,
+          message: requestMessage,
+          tier: requestTier,
+          amount: requestPrices[requestTier],
+          idempotencyKey: crypto.randomUUID(),
+        })
+        const liveRequest: LiveRequest = {
+          id: savedRequest.id,
+          song: savedRequest.song_title,
+          artist: savedRequest.artist,
+          message: savedRequest.message || "",
+          tier: savedRequest.tier,
+          amount: savedRequest.amount,
+          status: savedRequest.status,
+          submittedAt: "Just now",
+        }
+        setRequests(current => [liveRequest, ...current])
+        setRequestSubmitted(liveRequest)
+        setRequestMessage("")
+        return
+      } catch (error) {
+        setRequestError(error instanceof Error ? error.message : "Unable to submit the request.")
+        return
+      }
+    }
+
+    const createdRequest: LiveRequest = {
+      id: `REQ-${Math.floor(100 + Math.random() * 899)}`,
+      song: selectedSong.song,
+      artist: selectedSong.artist,
+      message: requestMessage.trim(),
+      tier: requestTier,
+      amount: requestPrices[requestTier],
+      status: "Pending",
+      submittedAt: "Just now",
+    }
+    setRequests(current => [createdRequest, ...current])
+    setRequestSubmitted(createdRequest)
+    setRequestMessage("")
+  }
+
+  const updateRequestStatus = async (id: string, status: LiveRequest["status"]) => {
+    const query = new URLSearchParams(window.location.search)
+    if (isSupabaseConfigured && supabase && query.get("session") && !id.startsWith("REQ-")) {
+      try {
+        await advanceLiveRequest(id, status as Exclude<LiveRequest["status"], "Pending" | "Cancelled">)
+      } catch (error) {
+        setRequestError(error instanceof Error ? error.message : "Unable to update the request.")
+        return
+      }
+    }
+    setRequests(current => current.map(request => request.id === id ? { ...request, status } : request))
+  }
 
   useEffect(() => {
     Promise.all([getPublishedMixes(), getPublishedVideos(), getUpcomingEvents()]).then(([liveMixes, liveVideos, liveEvents]) => {
@@ -404,9 +507,10 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
 
   const navItems: { id: AppTab; label: string; icon: React.ReactNode }[] = [
     { id: "home", label: "Home", icon: <HomeIcon /> },
-    { id: "music", label: "Music", icon: <MusicIcon /> },
-    { id: "videos", label: "YouTube", icon: <YouTubeIcon /> },
+    { id: "live", label: "Live", icon: <HeadphonesIcon /> },
+    { id: "requests", label: "Request", icon: <MusicIcon /> },
     { id: "events", label: "Events", icon: <CalendarIcon /> },
+    { id: "nightlife", label: "More", icon: <UsersIcon /> },
     { id: "profile", label: "Profile", icon: <ProfileIcon /> },
   ]
 
@@ -467,8 +571,43 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
               <p className="mt-2 text-sm leading-relaxed text-gray-500">Book DJ Jaygee for weddings, corporate events, ceremonies, and private celebrations across Kenya.</p>
               <button onClick={() => setActiveTab("booking")} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#111111] px-4 py-3 text-sm font-semibold">Start a booking <ChevronDownIcon /></button>
             </section>
+            <section className="overflow-hidden rounded-2xl bg-[#111111] text-white shadow-xl">
+              <div className="relative p-5">
+                <div className="absolute right-5 top-5 flex items-center gap-2 rounded-full bg-[#C96B6B]/15 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#C96B6B]"><span className="h-2 w-2 animate-pulse rounded-full bg-[#C96B6B]" /> Live now</div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#C96B6B]">QR session · Table T12</p>
+                <h2 className="mt-2 text-2xl font-bold">Club X, Nairobi</h2>
+                <p className="mt-1 text-sm text-white/60">DJ JayGee · Afrobeat / Amapiano</p>
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <button onClick={() => setActiveTab("requests")} className="rounded-xl bg-[#C96B6B] px-4 py-3 text-sm font-bold text-[#111111]">Request a song</button>
+                  <button onClick={() => setActiveTab("live")} className="rounded-xl border border-white/20 px-4 py-3 text-sm font-semibold">View live queue</button>
+                </div>
+              </div>
+            </section>
           </div>
         )}
+
+        {activeTab === "live" && (
+          <div className="space-y-5">
+            <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Live session</p><h1 className="mt-1 text-3xl font-bold">Club X · Table T12</h1><p className="mt-2 text-sm text-gray-500">DJ JayGee is live in Nairobi. Queue updates appear here in real time.</p></div><div className="flex flex-col items-end gap-2"><span className="flex shrink-0 items-center gap-2 rounded-full bg-green-100 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-green-700"><span className="h-2 w-2 animate-pulse rounded-full bg-green-600" /> Live</span><button onClick={() => setDjConsoleOpen(value => !value)} className="text-[10px] font-bold uppercase tracking-wider text-[#A41E14]">{djConsoleOpen ? "Close DJ console" : "DJ console"}</button></div></div>
+            {djConsoleOpen && <section className="rounded-2xl border border-[#C96B6B]/30 bg-[#A41E14]/5 p-4"><div className="flex items-center justify-between"><h2 className="text-sm font-bold">Queue controls</h2><span className="text-[10px] font-bold uppercase tracking-wider text-[#A41E14]">Local demo mode</span></div><p className="mt-1 text-xs text-gray-500">Advance requests here to preview the DJ workflow.</p><div className="mt-3 space-y-2">{requests.filter(request => request.status === "Pending" || request.status === "Accepted" || request.status === "Playing").map(request => <div key={request.id} className="flex items-center gap-2 rounded-xl bg-white p-3"><span className="min-w-0 flex-1 truncate text-xs font-semibold">{request.id} · {request.song}</span>{request.status === "Pending" && <button onClick={() => updateRequestStatus(request.id, "Accepted")} className="rounded-lg bg-[#111111] px-2.5 py-2 text-[10px] font-bold text-white">Accept</button>}{request.status === "Accepted" && <button onClick={() => updateRequestStatus(request.id, "Playing")} className="rounded-lg bg-[#A41E14] px-2.5 py-2 text-[10px] font-bold text-white">Play</button>}{request.status === "Playing" && <button onClick={() => updateRequestStatus(request.id, "Played")} className="rounded-lg border border-gray-200 px-2.5 py-2 text-[10px] font-bold">Played</button>}<button onClick={() => updateRequestStatus(request.id, "Declined")} className="px-1 text-[10px] font-semibold text-gray-400">Decline</button></div>)}</div></section>}
+            <section className="rounded-2xl bg-[#111111] p-5 text-white shadow-xl">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C96B6B]">Now playing</p>
+              <div className="mt-4 flex items-center gap-4"><img src={requestSongs[0].artwork} alt="Now playing artwork" className="h-20 w-20 rounded-xl object-cover" /><div><h2 className="text-xl font-bold">Unavailable</h2><p className="mt-1 text-sm text-white/55">Davido · Afrobeat</p><div className="mt-3 flex gap-1">{[20, 32, 14, 42, 26, 50, 18, 35, 24, 44].map((height, index) => <span key={index} className="w-1 rounded-full bg-[#C96B6B]" style={{ height }} />)}</div></div></div>
+              <button onClick={() => setActiveTab("requests")} className="mt-5 w-full rounded-xl bg-[#C96B6B] px-4 py-3 text-sm font-bold text-[#111111]">Add your song to the queue</button>
+            </section>
+            <section className="space-y-3"><div className="flex items-center justify-between"><h2 className="text-lg font-bold">Up next</h2><span className="text-xs text-gray-500">{requests.length} requests</span></div>{requests.filter(request => request.status !== "Declined" && request.status !== "Played").map((request, index) => <article key={request.id} className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm"><span className="w-5 text-center text-xs font-bold text-gray-400">{index + 1}</span><div className="min-w-0 flex-1"><h3 className="truncate text-sm font-bold">{request.song}</h3><p className="mt-1 text-xs text-gray-500">{request.artist} · {request.tier} · {request.submittedAt}</p></div><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${request.status === "Playing" ? "bg-[#A41E14] text-white" : request.status === "Accepted" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>{request.status}</span></article>)}</section>
+          </div>
+        )}
+
+        {activeTab === "requests" && (
+          <div className="space-y-5">
+            <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Club X · Table T12</p><h1 className="mt-1 text-3xl font-bold">Request a song</h1><p className="mt-2 text-sm text-gray-500">Send a dedication to DJ JayGee. Your request stays visible in the live queue.</p></div>
+            {requestSubmitted ? <section className="rounded-2xl bg-[#111111] p-6 text-white shadow-xl"><div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#C96B6B] text-xl text-[#111111]">✓</div><p className="mt-5 text-xs font-bold uppercase tracking-[0.2em] text-[#C96B6B]">Request submitted</p><h2 className="mt-2 text-2xl font-bold">{requestSubmitted.song}</h2><p className="mt-1 text-sm text-white/60">{requestSubmitted.artist} · {requestSubmitted.id}</p><div className="mt-5 grid grid-cols-2 gap-3"><div className="rounded-xl bg-white/10 p-3"><p className="text-[10px] uppercase tracking-wider text-white/45">Queue status</p><p className="mt-1 text-sm font-bold">Pending</p></div><div className="rounded-xl bg-white/10 p-3"><p className="text-[10px] uppercase tracking-wider text-white/45">Payment</p><p className="mt-1 text-sm font-bold">Demo verified</p></div></div><button onClick={() => setRequestSubmitted(null)} className="mt-5 w-full rounded-xl border border-white/20 px-4 py-3 text-sm font-semibold">Make another request</button></section> : <form onSubmit={submitLiveRequest} className="space-y-5 rounded-2xl bg-white p-5 shadow-sm"><div><label className="text-xs font-bold uppercase tracking-wider text-gray-500">Choose a song</label><div className="mt-3 space-y-2">{requestSongs.map(song => <button type="button" key={song.song} onClick={() => setRequestSong(song.song)} className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left ${requestSong === song.song ? "border-[#A41E14] bg-[#A41E14]/5" : "border-gray-200"}`}><img src={song.artwork} alt="" className="h-12 w-12 rounded-lg object-cover" /><span className="min-w-0 flex-1"><strong className="block truncate text-sm">{song.song}</strong><span className="mt-1 block text-xs text-gray-500">{song.artist}</span></span><span className={`h-4 w-4 rounded-full border-2 ${requestSong === song.song ? "border-[#A41E14] bg-[#A41E14]" : "border-gray-300"}`} /></button>)}</div></div><label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Dedication or shoutout<textarea value={requestMessage} onChange={event => setRequestMessage(event.target.value)} rows={3} placeholder="For Brian's birthday..." className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-normal outline-none focus:border-[#A41E14]" /></label><div><p className="text-xs font-bold uppercase tracking-wider text-gray-500">Request priority</p><div className="mt-2 grid grid-cols-2 gap-2">{(Object.keys(requestPrices) as LiveRequest["tier"][]).map(tier => <button type="button" key={tier} onClick={() => setRequestTier(tier)} className={`rounded-xl border p-3 text-left ${requestTier === tier ? "border-[#A41E14] bg-[#A41E14]/5" : "border-gray-200"}`}><span className="block text-sm font-bold">{tier}</span><span className="mt-1 block text-xs text-gray-500">{requestPrices[tier] === 0 ? "Free" : `KES ${requestPrices[tier]}`}</span></button>)}</div></div>{requestError && <p className="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600">{requestError}</p>}<button type="submit" className="w-full rounded-xl bg-[#A41E14] px-4 py-4 text-sm font-bold text-white">{requestPrices[requestTier] ? `Pay KES ${requestPrices[requestTier]} & submit` : "Submit free request"}</button><p className="text-center text-[11px] text-gray-400">Demo payment is verified locally. Provider webhooks belong in the production API.</p></form>}
+            <section className="space-y-3"><div className="flex items-center justify-between"><h2 className="text-lg font-bold">Your queue activity</h2><button onClick={() => setActiveTab("live")} className="text-xs font-bold text-[#A41E14]">Open live view</button></div>{requests.slice(0, 3).map(request => <article key={request.id} className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm"><div className="min-w-0 flex-1"><h3 className="truncate text-sm font-bold">{request.song}</h3><p className="mt-1 text-xs text-gray-500">{request.id} · {request.tier} · KES {request.amount}</p></div><span className="rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-bold text-gray-600">{request.status}</span></article>)}</section>
+          </div>
+        )}
+
+        {activeTab === "nightlife" && <NightlifeHub user={authUser} onSignIn={() => { setAuthMode("signin"); setShowSignIn(true) }} />}
 
         {activeTab === "music" && (
           <div className="space-y-5">
@@ -641,7 +780,7 @@ export default function App() {
 
   useEffect(() => {
     setIsInstalled(window.matchMedia("(display-mode: standalone)").matches)
-    const updateStandaloneMode = () => setStandaloneMode(window.matchMedia("(display-mode: standalone)").matches || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone))
+    const updateStandaloneMode = () => setStandaloneMode(window.matchMedia("(display-mode: standalone)").matches || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone) || new URLSearchParams(window.location.search).get("app") === "1")
     updateStandaloneMode()
 
     const onBeforeInstallPrompt = (event: Event) => {
