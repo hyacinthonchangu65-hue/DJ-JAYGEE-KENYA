@@ -389,7 +389,7 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
   const navItems: { id: AppTab; label: string; icon: React.ReactNode }[] = [
     { id: "home", label: "Home", icon: <HomeIcon /> },
     { id: "music", label: "Music", icon: <MusicIcon /> },
-    { id: "videos", label: "Videos", icon: <VideoIcon /> },
+    { id: "videos", label: "YouTube", icon: <YouTubeIcon /> },
     { id: "events", label: "Events", icon: <CalendarIcon /> },
     { id: "profile", label: "Profile", icon: <ProfileIcon /> },
   ]
@@ -466,7 +466,7 @@ function StandaloneApp({ onInstall, isInstalled }: { onInstall: () => void; isIn
         )}
 
         {activeTab === "videos" && (
-          <div className="space-y-5"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Watch</p><h1 className="mt-1 text-3xl font-bold">DJ JayGee TV</h1><p className="mt-2 text-sm text-gray-500">Live performances, behind-the-scenes moments, and event energy.</p></div><div className="space-y-4">{videos.map(video => <article key={video.id} className="overflow-hidden rounded-2xl bg-white shadow-sm"><a href={video.url} target="_blank" rel="noreferrer" className="relative block"><img src={video.thumbnail} alt={video.title} className="h-52 w-full object-cover" /><span className="absolute inset-0 flex items-center justify-center"><span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#A41E14] text-white shadow-xl">▶</span></span><span className="absolute bottom-3 right-3 rounded bg-black/75 px-2 py-1 text-[10px] text-white">{video.duration}</span></a><div className="p-4"><p className="text-[10px] font-semibold uppercase tracking-widest text-[#A41E14]">{video.category}</p><h2 className="mt-1 font-bold">{video.title}</h2><p className="mt-1 text-xs text-gray-500">{video.views} views</p></div></article>)}</div></div>
+          <div className="space-y-5"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A41E14]">Watch on YouTube</p><h1 className="mt-1 text-3xl font-bold">DJ JayGee TV</h1><p className="mt-2 text-sm text-gray-500">Live performances, behind-the-scenes moments, and event energy.</p><a href="https://youtube.com/@djaygeekenya-c6q7i" target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#A41E14] px-4 py-3 text-sm font-semibold text-white"><YouTubeIcon /> Open YouTube channel</a></div><div className="space-y-4">{videos.map(video => <article key={video.id} className="overflow-hidden rounded-2xl bg-white shadow-sm"><a href={video.url} target="_blank" rel="noreferrer" className="relative block"><img src={video.thumbnail} alt={video.title} className="h-52 w-full object-cover" /><span className="absolute inset-0 flex items-center justify-center"><span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#A41E14] text-white shadow-xl">▶</span></span><span className="absolute bottom-3 right-3 rounded bg-black/75 px-2 py-1 text-[10px] text-white">{video.duration}</span></a><div className="p-4"><p className="text-[10px] font-semibold uppercase tracking-widest text-[#A41E14]">{video.category}</p><h2 className="mt-1 font-bold">{video.title}</h2><p className="mt-1 text-xs text-gray-500">{video.views} views</p></div></article>)}</div></div>
         )}
 
         {activeTab === "events" && (
